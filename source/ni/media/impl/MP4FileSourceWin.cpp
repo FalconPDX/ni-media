@@ -7,6 +7,7 @@
 
 #include <boost/make_unique.hpp>
 #include <boost/algorithm/clamp.hpp>
+#include <boost/format.hpp>
 
 #ifdef WINVER
 # undef WINVER
@@ -219,6 +220,14 @@ MP4FileSource::Impl::Impl(const std::string& path) :
   if (not setPosition(*m_reader, framesTo100ns(s_aacReadOffset, m_streamInfo.sampleRate())))
     throw std::runtime_error("Could not reposition in media buffer.");
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+MP4FileSource::Impl::~Impl()
+{
+
+}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 

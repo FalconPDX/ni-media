@@ -15,7 +15,7 @@
 
 #include <AudioToolbox/ExtendedAudioFile.h>
 
-#include <AudioEngine/Media/MP4FileSource.h>
+#include <ni/media/MP4FileSource.h>
 
 
 class MP4FileSource::Impl

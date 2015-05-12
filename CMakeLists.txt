@@ -26,7 +26,7 @@ endif()
 #--------------------------------------------------------------------
 # add targets
 #--------------------------------------------------------------------
-
+set(NI_UNITY_BUILDS false)
 add_subdirectory( source )
 
 if( NIMEDIA_TESTS )
@@ -38,7 +38,7 @@ endif()
 # group in project
 #--------------------------------------------------------------------
 
-foreach( target ni-media ni-media_tests )
+foreach( target alac ni-media ni-media_tests )
   if( TARGET ${target} )
     set_property( TARGET ${target} PROPERTY FOLDER ni-media )
   endif()

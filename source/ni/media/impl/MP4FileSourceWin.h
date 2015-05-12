@@ -13,11 +13,11 @@
 //!---------------------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "MP4FileSource.h"
 
 #include <boost/icl/right_open_interval.hpp>
 #include <boost/icl/interval_set.hpp>
 
+#include <ni/media/MP4FileSource.h>
 
 struct IMFSourceReader;
 
@@ -41,6 +41,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------
 
   Impl(const std::string& path);
+  ~Impl();
 
   const AudioStreamInfo& audioStreamInfo() const { return m_streamInfo; }
 
