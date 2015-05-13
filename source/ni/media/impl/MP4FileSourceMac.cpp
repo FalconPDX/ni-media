@@ -2,8 +2,6 @@
 
 #include <boost/algorithm/clamp.hpp>
 
-#include <AudioEngine/AudioConfig.h>
-
 
 namespace
 {
@@ -21,7 +19,6 @@ AudioStreamInfo buildOutStreamInfo(ExtAudioFileRef& media)
     throw std::runtime_error("Could not retrieve the audio format.");
   }
 
-  using namespace ni::audio;
   info.format     (pcm::format::f32le());
   info.sampleRate (descriptor.mSampleRate);
   info.numChannels(descriptor.mChannelsPerFrame);
