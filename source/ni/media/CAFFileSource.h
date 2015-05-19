@@ -35,13 +35,13 @@ public:
 
 private:
 
-  bool  readHeader();
-  size_t  decodeBlock();
+  void   readHeader();
+  size_t decodeBlock();
 
   using buffer_t = std::vector < uint8_t > ;
 
   buffer_t                          m_readBuffer;
-  buffer_t                          m_writeBuffer; 
+  buffer_t                          m_writeBuffer;
   size_t                            m_writeOffset;
 
   AudioFormatDescription            m_inputFormat;

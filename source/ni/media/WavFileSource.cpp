@@ -10,19 +10,23 @@
 
 #include "WAVChunks.h"
 
+#include <ciso646>
+
+#include <boost/format.hpp>
+
 namespace {
 
-static const boost::uint8_t aWavFormatExtSubFormatPCM[] = 
+static const boost::uint8_t aWavFormatExtSubFormatPCM[] =
 {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
-static const boost::uint8_t aWavFormatExtSubFormatPCM_2[] = 
+static const boost::uint8_t aWavFormatExtSubFormatPCM_2[] =
 {0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
-static const boost::uint8_t aWavFormatExtSubFormatFloat[] = 
+static const boost::uint8_t aWavFormatExtSubFormatFloat[] =
 {0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
-static const boost::uint8_t aWavFormatExtSubFormatFloat_2[] = 
+static const boost::uint8_t aWavFormatExtSubFormatFloat_2[] =
 {0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71};
 
 // TODO : change this!
-  int charToInt(const char a, const char b, const char c, const char d)
+  uint32_t charToInt(const char a, const char b, const char c, const char d)
   {
     return  ((((int)a) << 24) | (((int)b) << 16) | (((int)c) << 8) | ((int)d));
   }
@@ -35,10 +39,8 @@ WavFileSource::WavFileSource( const std::string& path )
 : AudioFileSource( path, BOOST_IOS::binary | BOOST_IOS::in )
 , m_nBlockAlign(0)
 {
-  if ( is_open() && !readHeader() )
-  {
-    close();
-  }
+  if (not is_open()) throw std::runtime_error("Could not open the audio file.");
+  readHeader();
 }
 
 
@@ -46,18 +48,16 @@ WavFileSource::WavFileSource( const std::string& path )
 
 void WavFileSource::open( const std::string& path )
 {
-  AudioFileSource::open( path, BOOST_IOS::binary | BOOST_IOS::in );
-  if ( is_open() && !readHeader() )
-  {
-    close();
-  }
+  AudioFileSource::open(path, BOOST_IOS::binary | BOOST_IOS::in);
+  if (not is_open()) throw std::runtime_error("Could not open the audio file.");
+  readHeader();
 }
 
 
 //----------------------------------------------------------------------------------------------------------------------
 
 std::streamsize WavFileSource::read( char_type* s, std::streamsize n )
-{ 
+{
   std::streampos pos = seek( 0, BOOST_IOS::cur );
   std::streampos end = audioStreamInfo().numBytes();
 
@@ -72,15 +72,15 @@ std::streamsize WavFileSource::read( char_type* s, std::streamsize n )
 //----------------------------------------------------------------------------------------------------------------------
 
 std::streampos WavFileSource::seek( boost::iostreams::stream_offset off, BOOST_IOS::seekdir way )
-{ 
-  std::streampos pos = (way == BOOST_IOS::cur) ? 
+{
+  std::streampos pos = (way == BOOST_IOS::cur) ?
     AudioFileSource::seek( off, way ) : AudioFileSource::seek( off + m_offs, way );
   return pos - boost::iostreams::stream_offset_to_streamoff(m_offs);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool WavFileSource::readHeader()
+void WavFileSource::readHeader()
 {
   m_offs = 0;
 
@@ -94,30 +94,18 @@ bool WavFileSource::readHeader()
   tRiffTag aRiffTag;
   ncount = AudioFileSource::read(reinterpret_cast<char*>(&aRiffTag.nID), 4);
   ncount = AudioFileSource::read(reinterpret_cast<char*>(&aRiffTag.nLength), 4);
-  if (aRiffTag.nID  != charToInt('F','F','I','R'))
-  {
-    //M_ML_ERROR(L"Cannot find RIFF Chunk");
-    return false;
-  }
-
+  if (aRiffTag.nID != charToInt('F','F','I','R')) throw std::runtime_error("Could not read \'RIFF\' tag.");
 
   // read wave chunk
   ncount = AudioFileSource::read(reinterpret_cast<char*>(&aRiffTag.nID), 4);
-  if (aRiffTag.nID  != charToInt('E','V','A','W'))
-  {
-    //M_ML_ERROR(L"Cannot find WAVE Chunk");
-    return false;
-  }
+  if (aRiffTag.nID != charToInt('E','V','A','W')) throw std::runtime_error("Could not read \'WAVE\' tag.");
 
   while ( true )
   {
     ncount = AudioFileSource::read(reinterpret_cast<char*>(&aRiffTag.nID), 4);
     ncount = AudioFileSource::read(reinterpret_cast<char*>(&aRiffTag.nLength), 4);
 
-    if (!aRiffTag.nLength)
-    {
-      return false;
-    }
+    if (!aRiffTag.nLength) throw std::runtime_error("Could not read length of \'RIFF\' chunk." );
 
     // seek through wav chunks
     if (aRiffTag.nID  == charToInt(' ','t','m','f'))
@@ -149,12 +137,12 @@ bool WavFileSource::readHeader()
         tWAVFormatExtensible aFormatExtensible;
         ncount = AudioFileSource::read(reinterpret_cast<char*>(&aFormatExtensible), sizeof(tWAVFormatExtensible));
 
-        if (memcmp(aFormatExtensible.aSubFormat, aWavFormatExtSubFormatPCM, 16) || 
+        if (memcmp(aFormatExtensible.aSubFormat, aWavFormatExtSubFormatPCM, 16) ||
           memcmp(aFormatExtensible.aSubFormat, aWavFormatExtSubFormatPCM_2, 16))
         {
           nFormatTag = CONST_WAVE_FORMAT_PCM;
         }
-        else if (memcmp(aFormatExtensible.aSubFormat, aWavFormatExtSubFormatFloat, 16) || 
+        else if (memcmp(aFormatExtensible.aSubFormat, aWavFormatExtSubFormatFloat, 16) ||
           memcmp(aFormatExtensible.aSubFormat, aWavFormatExtSubFormatFloat_2, 16))
         {
           nFormatTag = CONST_WAVE_FORMAT_IEEE_FLOAT;
@@ -175,7 +163,9 @@ bool WavFileSource::readHeader()
         case 16:    format = ::pcm::format::s16le(); break;
         case 24:    format = ::pcm::format::s24le(); break;
         case 32:    format = ::pcm::format::s32le(); break;
-        default:    break;
+        default:
+          throw std::runtime_error(boost::str(
+            boost::format("%u integer bit depth found. Only 8, 16, 24 and 32-bit are supported.") % nBitsPerSample));
         }
       }
       else if (nFormatTag == CONST_WAVE_FORMAT_IEEE_FLOAT)
@@ -184,16 +174,12 @@ bool WavFileSource::readHeader()
         {
         case 32:    format = ::pcm::format::f32le(); break;
         case 64:    format = ::pcm::format::f64le(); break;
-        default:    break;
+        default:
+          throw std::runtime_error(boost::str(
+            boost::format("%u floating point bit depth found. Only 32 and 64-bit are supported.") % nBitsPerSample));
         }
       }
-      if ( !format.valid() )
-      {
-        //M_ML_ERROR(StringUtils::format(L"Invalid Format - FormatTag %1%, BitsPerSample %2%",nFormatTag, nBitsPerSample));
-
-        return false;
-
-      }
+      else throw std::runtime_error("Unknown format.");
 
       info.format(format);
 
@@ -208,7 +194,7 @@ bool WavFileSource::readHeader()
       m_offs = tell();
       info.numSampleFrames( aRiffTag.nLength / m_nBlockAlign );
       audioStreamInfo(info);
-      return true;
+      return;
     }
     else if(aRiffTag.nID  == charToInt('l','p','m','s'))
     {
@@ -247,9 +233,7 @@ bool WavFileSource::readHeader()
     }
   }
 
-  return false;
-
+  throw std::runtime_error("Could not read \'data\' tag.");
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------

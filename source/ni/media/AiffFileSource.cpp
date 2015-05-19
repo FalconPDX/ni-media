@@ -39,10 +39,10 @@ const uint32_t ssnd = 'SSND';
 struct Tag
 {
   // TODO: Test Replacing with boost::endian buffers
-  uint32_t id      = 0;
-  uint32_t length  = 0;
-  uint32_t subType = 0;
-  size_t   start   = 0;
+  uint32_t       id      = 0;
+  uint32_t       length  = 0;
+  uint32_t       subType = 0;
+  std::streamoff start   = 0;
 };
 
 // The following structs are used in disk operations so we need to prevent the compiler from expanding them
