@@ -30,7 +30,7 @@ set(NI_UNITY_BUILDS false)
 add_subdirectory( source )
 
 if( NIMEDIA_TESTS )
-  #TODO add_subdirectory( test )
+  add_subdirectory( test )
 endif()
 
 
