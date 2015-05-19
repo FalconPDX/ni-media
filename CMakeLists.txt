@@ -38,7 +38,7 @@ endif()
 # group in project
 #--------------------------------------------------------------------
 
-foreach( target alac ni-media ni-media_tests )
+foreach( target alac ni-media ni-media_test )
   if( TARGET ${target} )
     set_property( TARGET ${target} PROPERTY FOLDER ni-media )
   endif()
