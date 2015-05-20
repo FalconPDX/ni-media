@@ -411,7 +411,7 @@ size_t CAFFileSource::decodeBlock( )
     if ( (numBytesToRead > 0) && ((size_t)numBytesToRead == AudioFileSource::read( (char*)m_readBuffer.data(), numBytesToRead )) )
     {
       BitBuffer readBuffer;
-      BitBufferInit(&readBuffer, m_readBuffer.data(), m_readBuffer.size());
+      BitBufferInit(&readBuffer, m_readBuffer.data(), uint32_t(m_readBuffer.size()));
       m_writeBuffer.resize( m_readBuffer.size() );
       m_decoder->Decode( &readBuffer, m_writeBuffer.data(), m_inputFormat.mFramesPerPacket, m_inputFormat.mChannelsPerFrame, &numFrames );
     }
@@ -471,7 +471,7 @@ void CAFFileSource::readHeader()
 
   // In order to retrieve the total data size we need to decode the entire file
   size_t numDataBytes = 0;
-  for ( auto numBytes = 0; (numBytes = decodeBlock()) != 0 ; numDataBytes += numBytes );
+  for ( size_t numBytes = 0; (numBytes = decodeBlock()) != 0 ; numDataBytes += numBytes );
   // Then, seek back to beginning
   FindCAFFDataStart( source, &m_inputDataPos, &m_inputDataSize );
   FindCAFFPacketTableStart( source, &m_packetTablePos, &m_packetTableSize );
