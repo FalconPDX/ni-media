@@ -10,7 +10,10 @@
 #include <ALACBitUtilities.h>
 #include <EndianPortable.h>
 
+#include <ciso646>
 #include <vector>
+
+#include <boost/format.hpp>
 
 #define kMaxBERSize 5
 
@@ -44,9 +47,9 @@ uint32_t ReadBERInteger(uint8_t * theInputBuffer, int32_t * ioNumBytes)
 		}
 	}
 	while(((theData & 0x80) != 0) && (size <= *ioNumBytes));
-    
+
     *ioNumBytes = size;
-	
+
 	return theAnswer;
 }
 
@@ -60,7 +63,7 @@ int32_t FindCAFFPacketTableStart(AudioFileSource& source, int32_t * paktPos, int
     uint32_t chunkType = 0, chunkSize = 0;
     bool done = false;
     int32_t bytesRead = 8;
-    
+
     source.seek(bytesRead, BOOST_IOS::beg); // start at 8!
     while (!done && bytesRead > 0) // no file size here
     {
@@ -80,11 +83,11 @@ int32_t FindCAFFPacketTableStart(AudioFileSource& source, int32_t * paktPos, int
                 break;
         }
     }
-    
+
     source.seek(currentPosition, BOOST_IOS::beg); // start at 0
-    
+
     return 0;
-    
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -98,14 +101,14 @@ uint32_t GetMagicCookieSizeFromCAFFkuki(AudioFileSource & source)
     bool done = false;
     std::streamsize bytesRead = sizeof(port_CAFFileHeader);
     uint32_t theCookieSize = 0;
-    
+
     source.seek(bytesRead, BOOST_IOS::beg); // start at 8!
     while (!done && bytesRead > 0) // no file size here
     {
         bytesRead = source.read((char*)theReadBuffer, 12);
         chunkType = ((int32_t)(theReadBuffer[0]) << 24) + ((int32_t)(theReadBuffer[1]) << 16) + ((int32_t)(theReadBuffer[2]) << 8) + theReadBuffer[3];
         switch(chunkType)
-        {                    
+        {
             case 'kuki':
             {
                 theCookieSize = theReadBuffer[11];
@@ -118,13 +121,13 @@ uint32_t GetMagicCookieSizeFromCAFFkuki(AudioFileSource & source)
                 break;
         }
     }
-    
+
     source.seek(currentPosition, BOOST_IOS::beg); // start at 0
-    
+
     if (!done) return (uint32_t)-1;
-    
+
     return theCookieSize;
-    
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -138,14 +141,14 @@ int32_t GetMagicCookieFromCAFFkuki(AudioFileSource & source, uint8_t * outMagicC
     bool done = false, cookieFound = false;
     int32_t bytesRead = sizeof(port_CAFFileHeader);
     uint32_t theStoredCookieSize = 0;
-    
+
     source.seek(bytesRead, BOOST_IOS::beg); // start at 8!
     while (!done && bytesRead > 0) // no file size here
     {
         bytesRead = (int32_t)source.read((char*)theReadBuffer, 12);
         chunkType = ((int32_t)(theReadBuffer[0]) << 24) + ((int32_t)(theReadBuffer[1]) << 16) + ((int32_t)(theReadBuffer[2]) << 8) + theReadBuffer[3];
         switch(chunkType)
-        {                    
+        {
             case 'kuki':
             {
                 theStoredCookieSize = theReadBuffer[11];
@@ -168,11 +171,11 @@ int32_t GetMagicCookieFromCAFFkuki(AudioFileSource & source, uint8_t * outMagicC
                 break;
         }
     }
-    
+
     source.seek(currentPosition, BOOST_IOS::beg); // start at 0
-    
+
     if (!done || !cookieFound) return -1;
-    
+
     return 0;
 }
 
@@ -184,7 +187,7 @@ bool FindCAFFDataStart(AudioFileSource & source, int32_t * dataPos, int32_t * da
     std::streamsize bytesRead = 8;
     uint32_t chunkType = 0, chunkSize = 0;
     uint8_t theBuffer[12];
-    
+
     source.seek( bytesRead, BOOST_IOS::beg); // start at 8!
     while (!done && bytesRead > 0) // no file size here
     {
@@ -215,7 +218,7 @@ bool GetCAFFdescFormat(AudioFileSource & source, AudioFormatDescription * theInp
     bool done = false;
     uint32_t theChunkSize = 0, theChunkType = 0;
     uint8_t theReadBuffer[32];
-    
+
     source.seek( 4, BOOST_IOS::cur); // skip 4 bytes
 
     while (!done)
@@ -274,7 +277,7 @@ int32_t GetInputFormat(AudioFileSource & source, AudioFormatDescription * theInp
     bool done = false;
 
     source.read((char*)theReadBuffer, 4);
-    
+
     if (theReadBuffer[0] == 'c' && theReadBuffer[1] == 'a' && theReadBuffer[2] == 'f'  && theReadBuffer[3] == 'f')
     {
         // It's a caff file!
@@ -345,7 +348,7 @@ int32_t FindDataStart(AudioFileSource & source, int32_t * dataPos, int32_t * dat
     return 0;
 }
 
-} // namespace 
+} // namespace
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -353,10 +356,8 @@ CAFFileSource::CAFFileSource( const std::string& path )
 : AudioFileSource( path, BOOST_IOS::binary | BOOST_IOS::in )
 , m_decoder(new ALACDecoder())
 {
-  if ( is_open() && !readHeader() )
-  {
-    close();
-  }
+  if (not is_open()) throw std::runtime_error("Could not open the audio file.");
+  readHeader();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -364,10 +365,8 @@ CAFFileSource::CAFFileSource( const std::string& path )
 void CAFFileSource::open( const std::string& path )
 {
   AudioFileSource::open( path, BOOST_IOS::binary | BOOST_IOS::in );
-  if ( is_open() && !readHeader() )
-  {
-    close();
-  }
+  if (not is_open()) throw std::runtime_error("Could not open the audio file.");
+  readHeader();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -398,7 +397,7 @@ std::streamsize CAFFileSource::read( char_type* dest, std::streamsize n )
 //----------------------------------------------------------------------------------------------------------------------
 
 size_t CAFFileSource::decodeBlock( )
-{ 
+{
 
     AudioFileSource::seek( m_packetTablePos, BOOST_IOS::beg );
     int32_t numBytes = (int32_t)AudioFileSource::read( (char*)m_readBuffer.data(), kMaxBERSize );
@@ -412,7 +411,7 @@ size_t CAFFileSource::decodeBlock( )
     if ( (numBytesToRead > 0) && ((size_t)numBytesToRead == AudioFileSource::read( (char*)m_readBuffer.data(), numBytesToRead )) )
     {
       BitBuffer readBuffer;
-      BitBufferInit(&readBuffer, m_readBuffer.data(), m_readBuffer.size());
+      BitBufferInit(&readBuffer, m_readBuffer.data(), uint32_t(m_readBuffer.size()));
       m_writeBuffer.resize( m_readBuffer.size() );
       m_decoder->Decode( &readBuffer, m_writeBuffer.data(), m_inputFormat.mFramesPerPacket, m_inputFormat.mChannelsPerFrame, &numFrames );
     }
@@ -424,8 +423,8 @@ size_t CAFFileSource::decodeBlock( )
 //----------------------------------------------------------------------------------------------------------------------
 
 std::streampos CAFFileSource::seek( boost::iostreams::stream_offset /*off*/, BOOST_IOS::seekdir /*way*/ )
-{ 
-  
+{
+
   //std::streampos pos = (way == BOOST_IOS::cur) ? m_pos + off : boost::iostreams::stream_offset_to_streamoff( off );
   // TODO : seeking
   return m_pos;
@@ -433,22 +432,22 @@ std::streampos CAFFileSource::seek( boost::iostreams::stream_offset /*off*/, BOO
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool CAFFileSource::readHeader()
+void CAFFileSource::readHeader()
 {
   AudioFileSource & source = *this;
 
   uint32_t inputFileType = 0; // 'caff' or 'WAVE'
 
-  if ( auto error = GetInputFormat( source, &m_inputFormat, &inputFileType ) )
+  if ( GetInputFormat( source, &m_inputFormat, &inputFileType ) )
     throw std::runtime_error("Unable to determine data format");
 
   if ( inputFileType != 'caff' || m_inputFormat.mFormatID != kALACFormatAppleLossless )
     throw std::runtime_error("Unsupported data format");
 
-  if ( auto error =  SetOutputFormat( m_inputFormat, &m_outputFormat ) )
+  if ( SetOutputFormat( m_inputFormat, &m_outputFormat ) )
     throw std::runtime_error("Unsupported data format");
 
-  if ( auto error =  FindDataStart( source, &m_inputDataPos, &m_inputDataSize ) )
+  if ( FindDataStart( source, &m_inputDataPos, &m_inputDataSize ) )
     throw std::runtime_error("Unsupported data format");
 
   if ( m_outputFormat.mChannelsPerFrame > 2 )
@@ -472,12 +471,11 @@ bool CAFFileSource::readHeader()
 
   // In order to retrieve the total data size we need to decode the entire file
   size_t numDataBytes = 0;
-  for ( auto numBytes = 0; (numBytes = decodeBlock()) != 0 ; numDataBytes += numBytes );
+  for ( size_t numBytes = 0; (numBytes = decodeBlock()) != 0 ; numDataBytes += numBytes );
   // Then, seek back to beginning
   FindCAFFDataStart( source, &m_inputDataPos, &m_inputDataSize );
   FindCAFFPacketTableStart( source, &m_packetTablePos, &m_packetTableSize );
   source.seek( m_inputDataPos, BOOST_IOS::beg );
-
 
   pcm::format format;
   switch ( m_decoder->mConfig.bitDepth )
@@ -486,7 +484,9 @@ bool CAFFileSource::readHeader()
     case 16: format = pcm::format::s16le(); break;
     case 24: format = pcm::format::s24le(); break;
     case 32: format = pcm::format::s32le(); break;
-    default: throw std::runtime_error( "Unsupported bit depth" );
+    default:
+      throw std::runtime_error(boost::str(boost::format("%u bit depth found. Only 8, 16, 24 and 32-bit are supported.")
+        %  m_decoder->mConfig.bitDepth));
   }
 
   AudioStreamInfo info;
@@ -496,8 +496,6 @@ bool CAFFileSource::readHeader()
   info.sampleRate( m_decoder->mConfig.sampleRate );
   info.format( format );
   audioStreamInfo( info );
-
-  return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

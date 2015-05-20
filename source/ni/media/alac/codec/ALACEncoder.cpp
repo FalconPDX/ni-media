@@ -45,7 +45,6 @@
 typedef int16_t (*SearchCoefs)[kALACMaxCoefs];
 
 // defines/constants
-const uint32_t kALACEncoderMagic	= 'dpge';
 const uint32_t kMaxSampleSize		= 32;			// max allowed bit width is 32
 const uint32_t kDefaultMixBits	= 2;
 const uint32_t kDefaultMixRes		= 0;
@@ -89,11 +88,6 @@ static const uint32_t	sChannelMaps[kALACMaxChannels] =
 	(ID_SCE << 15) | (ID_CPE << 9) | (ID_CPE << 3) | (ID_SCE),
 	(ID_SCE << 18) | (ID_SCE << 15) | (ID_CPE << 9) | (ID_CPE << 3) | (ID_SCE),
 	(ID_SCE << 21) | (ID_CPE << 15) | (ID_CPE << 9) | (ID_CPE << 3) | (ID_SCE)
-};
-
-static const uint32_t sSupportediPodSampleRates[] =
-{
-	8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000
 };
 
 /*
@@ -833,7 +827,7 @@ int32_t ALACEncoder::EncodeMono( BitBuffer * bitstream, void * inputBuffer, uint
 		bytesShifted = 0;
 
 	shift = bytesShifted * 8;
-	mask = (1ul << shift) - 1;
+  mask = uint32_t((1ul << shift) - 1);
 	chanBits = mBitDepth - (bytesShifted * 8);
 
 	// flag whether or not this is a partial frame
