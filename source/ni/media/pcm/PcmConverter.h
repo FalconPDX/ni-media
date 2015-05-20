@@ -484,6 +484,8 @@ namespace pcm {
     using writer      = writer_signature<value_t, iterator_t>;
     using dispatcher  = dispatcher<value_t, iterator_t, format_tags>;
 
+    converter() = default;
+
     converter( const ::pcm::format& fmt )
       : m_reader( dispatcher::readers[fmt.id()] )
       , m_writer( dispatcher::writers[fmt.id()] )
@@ -501,8 +503,8 @@ namespace pcm {
     }
 
   private:
-    reader m_reader;
-    writer m_writer;
+    reader m_reader = nullptr;
+    writer m_writer = nullptr;
   };
 
 
