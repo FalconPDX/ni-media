@@ -67,7 +67,7 @@ TYPED_TEST_CASE_P(PcmConverterTest);
 // similar to what you do with TEST_F.
 
 TYPED_TEST_P(PcmConverterTest, ConversionEqualty) {
-  EXPECT_EQ(true, this->testConversion());
+  EXPECT_TRUE( this->testConversion());
 
 }
 
