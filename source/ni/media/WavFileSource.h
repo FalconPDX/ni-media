@@ -29,7 +29,7 @@ public:
 
 private:
 
-  bool  readHeader();
+  void readHeader();
 
   boost::iostreams::stream_offset   m_offs;
   unsigned                          m_nBlockAlign;
