@@ -5,6 +5,7 @@ add_src_group(FILES_test_all test_main FILES_main)
 
 add_src_file       (FILES_test_ni_media_pcm "ni/media/pcm/PcmConverter.test.cpp")
 add_src_file       (FILES_test_ni_media_pcm "ni/media/pcm/PcmIterator.test.cpp")
+add_src_file       (FILES_test_ni_media_pcm "ni/media/pcm/PcmTestTypes.h")
 
 add_src_group(FILES_test_all test_ni_media_pcm FILES_test_ni_media_pcm)
 

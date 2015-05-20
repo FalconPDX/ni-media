@@ -17,7 +17,7 @@
 
 #include <ni/media/pcm/PcmConverter.h>
 
-#include "PcmHelper.h"
+#include "PcmTestTypes.h"
 
 
 // We define a test fixture class template.
@@ -47,7 +47,7 @@ protected:
 
       if ( trg!=tst )
       {
-        target_t tst2 = pcm::detail::convert_to<target_t>(src);
+        //target_t tst2 = pcm::detail::convert_to<target_t>(src);
         return false;
       }
     }
@@ -112,5 +112,5 @@ INSTANTIATE_TYPED_TEST_CASE_P( AllToInt16  , PcmConverterTest, AllToInt16Types  
 INSTANTIATE_TYPED_TEST_CASE_P( AllToInt32  , PcmConverterTest, AllToInt32Types  );
 INSTANTIATE_TYPED_TEST_CASE_P( AllToFloat  , PcmConverterTest, AllToFloatTypes  );
 INSTANTIATE_TYPED_TEST_CASE_P( AllToDouble , PcmConverterTest, AllToDoubleTypes );
-                                                                              
+
 

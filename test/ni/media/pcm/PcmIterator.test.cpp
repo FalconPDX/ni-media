@@ -11,7 +11,7 @@
 //!  ALL RIGHTS RESERVED
 //!
 //----------------------------------------------------------------------------------------------------------------------
-#include "PcmHelper.h"
+#include "PcmTestTypes.h"
 
 #include <gtest/gtest.h>
 
@@ -64,7 +64,7 @@ protected:
     : m_srcContainer(256)
     , m_srcBeg( m_srcContainer.begin() )
     , m_srcEnd( m_srcContainer.end()   )
-    , m_dstContainer( m_srcContainer.size() ) 
+    , m_dstContainer( m_srcContainer.size() )
     , m_dstBeg( m_dstContainer.begin() )
     , m_dstEnd( m_dstContainer.end()   )
     , m_rawContainer( m_srcContainer.size() * PcmFormat::bitwidth_t::value / 8 )
@@ -86,17 +86,17 @@ protected:
 
 //---------------------------------------------------------------------------
 
-  bool custom_copy_to_pcm() 
+  bool custom_copy_to_pcm()
   {
     return ( m_rawEnd == pcm::write<PcmFormat>( m_srcBeg, m_srcEnd, m_rawBeg ) );
   }
 
-  bool custom_copy_from_pcm() 
+  bool custom_copy_from_pcm()
   {
     return ( m_dstEnd == pcm::read<PcmFormat>( m_rawBeg, m_rawEnd, m_dstBeg ) );
   }
 
-  bool custom_copy_to_from_pcm() 
+  bool custom_copy_to_from_pcm()
   {
     return custom_copy_to_pcm() && custom_copy_from_pcm() && equal();
   }
@@ -104,17 +104,17 @@ protected:
 
 //---------------------------------------------------------------------------
 
-  bool std_copy_to_pcm()  
+  bool std_copy_to_pcm()
   {
     return ( m_pcmEnd == std::copy( m_srcBeg, m_srcEnd, m_pcmBeg ) );
   }
 
-  bool std_copy_from_pcm()  
+  bool std_copy_from_pcm()
   {
     return ( m_dstEnd == std::copy( m_pcmBeg, m_pcmEnd, m_dstBeg ) );
   }
 
-  bool std_copy_to_from_pcm() 
+  bool std_copy_to_from_pcm()
   {
     return std_copy_to_pcm() && std_copy_from_pcm() && equal();
   }
@@ -122,17 +122,17 @@ protected:
 
 //---------------------------------------------------------------------------
 
-  bool std_copy_n_to_pcm()  
+  bool std_copy_n_to_pcm()
   {
     return ( m_pcmEnd == std::copy_n( m_srcBeg, std::distance( m_srcBeg, m_srcEnd ), m_pcmBeg ) );
   }
 
-  bool std_copy_n_from_pcm()  
+  bool std_copy_n_from_pcm()
   {
    return ( m_dstEnd == std::copy_n( m_pcmBeg, std::distance( m_pcmBeg, m_pcmEnd ), m_dstBeg ) );
   }
 
-  bool std_copy_n_to_from_pcm() 
+  bool std_copy_n_to_from_pcm()
   {
     return std_copy_n_to_pcm() && std_copy_n_from_pcm() && equal();
   }
@@ -140,21 +140,17 @@ protected:
 
 //---------------------------------------------------------------------------
 
-  bool boost_range_copy_to_pcm()  
+  bool boost_range_copy_to_pcm()
   {
-    typedef boost::iterator_range<SrcIterator> Range;
-
-    return ( m_pcmEnd == copy( Range( m_srcBeg, m_srcEnd ), m_pcmBeg ) );
+    return ( m_pcmEnd == copy( boost::make_iterator_range( m_srcBeg, m_srcEnd ), m_pcmBeg ) );
   }
 
-  bool boost_range_copy_from_pcm()  
+  bool boost_range_copy_from_pcm()
   {
-    typedef boost::iterator_range<PcmIterator> Range;
-
-    return ( m_dstEnd == copy( Range( m_pcmBeg, m_pcmEnd ), m_dstBeg ) );
+    return ( m_dstEnd == copy( boost::make_iterator_range( m_pcmBeg, m_pcmEnd ), m_dstBeg ) );
   }
 
-  bool boost_range_copy_to_from_pcm() 
+  bool boost_range_copy_to_from_pcm()
   {
     return boost_range_copy_to_pcm() && boost_range_copy_from_pcm() && equal();
   }
@@ -169,13 +165,13 @@ protected:
 
 };
 
-// Declare a parametrized test case. 
+// Declare a parametrized test case.
 TYPED_TEST_CASE_P(PcmIteratorTest);
 
 // Define parametrized test cases
 
 // custom tests
-TYPED_TEST_P(PcmIteratorTest, custom_copy_to_pcm_test) 
+TYPED_TEST_P(PcmIteratorTest, custom_copy_to_pcm_test)
 {
   EXPECT_TRUE( this->custom_copy_to_pcm() );
 }
@@ -185,7 +181,7 @@ TYPED_TEST_P(PcmIteratorTest, custom_copy_from_pcm_test)
   EXPECT_TRUE( this->custom_copy_from_pcm() );
 }
 
-TYPED_TEST_P(PcmIteratorTest, custom_copy_to_from_pcm_test) 
+TYPED_TEST_P(PcmIteratorTest, custom_copy_to_from_pcm_test)
 {
   EXPECT_TRUE( this->custom_copy_to_from_pcm() );
 }
@@ -202,7 +198,7 @@ TYPED_TEST_P( PcmIteratorTest, std_copy_from_pcm_test )
   EXPECT_TRUE( this->std_copy_from_pcm() );
 }
 
-TYPED_TEST_P(PcmIteratorTest, std_copy_to_from_pcm_test) 
+TYPED_TEST_P(PcmIteratorTest, std_copy_to_from_pcm_test)
 {
   EXPECT_TRUE( this->std_copy_to_from_pcm() );
 }
@@ -218,7 +214,7 @@ TYPED_TEST_P( PcmIteratorTest, std_copy_n_from_pcm_test )
   EXPECT_TRUE( this->std_copy_n_from_pcm() );
 }
 
-TYPED_TEST_P(PcmIteratorTest, std_copy_n_to_from_pcm_test) 
+TYPED_TEST_P(PcmIteratorTest, std_copy_n_to_from_pcm_test)
 {
   EXPECT_TRUE( this->std_copy_n_to_from_pcm() );
 }
@@ -234,7 +230,7 @@ TYPED_TEST_P( PcmIteratorTest, boost_range_copy_from_pcm_test )
   EXPECT_TRUE( this->boost_range_copy_from_pcm() );
 }
 
-TYPED_TEST_P(PcmIteratorTest, boost_range_copy_to_from_pcm_test) 
+TYPED_TEST_P(PcmIteratorTest, boost_range_copy_to_from_pcm_test)
 {
   EXPECT_TRUE( this->boost_range_copy_to_from_pcm() );
 }
@@ -266,4 +262,4 @@ INSTANTIATE_TYPED_TEST_CASE_P( Int32ToAll  , PcmIteratorTest, Int32ToAllPcmTypes
 INSTANTIATE_TYPED_TEST_CASE_P( FloatToAll  , PcmIteratorTest, FloatToAllPcmTypes  );
 INSTANTIATE_TYPED_TEST_CASE_P( DoubleToAll , PcmIteratorTest, DoubleToAllPcmTypes );
 
-                                                                            
+

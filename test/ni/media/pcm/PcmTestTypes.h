@@ -3,9 +3,9 @@
 //!  \author Marc Boucek
 //!  \date   Mar/2013
 //!
-//!  \file PcmHelper.h
+//!  \file PcmTestTypes.h
 //!
-//!  \brief Helper for pcm conversion tests
+//!  \brief defines types for pcm conversion tests
 //!
 //!  (c) Copyright NATIVE INSTRUMENTS, Berlin, Germany
 //!  ALL RIGHTS RESERVED
@@ -32,7 +32,7 @@ namespace number
   {
     static double value()
     {
-      return static_cast<double>( 1ULL << ( sizeof(value_t) * 8 - 1 ) ); 
+      return static_cast<double>( 1ULL << ( sizeof(value_t) * 8 - 1 ) );
     }
 
   };
@@ -46,7 +46,7 @@ namespace number
   {
     static double value()
     {
-      return static_cast<double>( std::numeric_limits<value_t>::min() ); 
+      return static_cast<double>( std::numeric_limits<value_t>::min() );
     }
   };
 
@@ -58,7 +58,7 @@ namespace number
   {
     static double value()
     {
-      return static_cast<double>( std::numeric_limits<value_t>::max() ); 
+      return static_cast<double>( std::numeric_limits<value_t>::max() );
     }
   };
 
@@ -70,7 +70,7 @@ namespace number
   {
     static double value()
     {
-      return ( min<value_t>::value() + max<value_t>::value() + 1.0 ) / 2.0 ; 
+      return ( min<value_t>::value() + max<value_t>::value() + 1.0 ) / 2.0 ;
     }
   };
 
@@ -143,7 +143,7 @@ st< int8_t   , int8_t   > ,
 st< int16_t  , int16_t  > ,
 st< int32_t  , int32_t  > ,
 st< float    , float    > ,
-st< double   , double   > 
+st< double   , double   >
 > SelfTypes;
 
 typedef testing::Types<
@@ -153,7 +153,7 @@ st< uint8_t , int8_t   > ,
 st< uint8_t , int16_t  > ,
 st< uint8_t , int32_t  > ,
 st< uint8_t , float    > ,
-st< uint8_t , double   > 
+st< uint8_t , double   >
 > Uint8ToAllTypes;
 
 typedef testing::Types<
@@ -163,7 +163,7 @@ st< uint16_t , int8_t   > ,
 st< uint16_t , int16_t  > ,
 st< uint16_t , int32_t  > ,
 st< uint16_t , float    > ,
-st< uint16_t , double   > 
+st< uint16_t , double   >
 > Uint16ToAllTypes;
 
 typedef testing::Types<
@@ -173,7 +173,7 @@ st< uint32_t , int8_t   > ,
 st< uint32_t , int16_t  > ,
 st< uint32_t , int32_t  > ,
 st< uint32_t , float    > ,
-st< uint32_t , double   > 
+st< uint32_t , double   >
 > Uint32ToAllTypes;
 
 
@@ -184,7 +184,7 @@ st< int8_t , uint32_t > ,
 st< int8_t , int16_t  > ,
 st< int8_t , int32_t  > ,
 st< int8_t , float    > ,
-st< int8_t , double   > 
+st< int8_t , double   >
 > Int8ToAllTypes;
 
 typedef testing::Types<
@@ -194,7 +194,7 @@ st< int16_t , uint32_t > ,
 st< int16_t , int8_t   > ,
 st< int16_t , int32_t  > ,
 st< int16_t , float    > ,
-st< int16_t , double   > 
+st< int16_t , double   >
 > Int16ToAllTypes;
 
 typedef testing::Types<
@@ -204,7 +204,7 @@ st< int32_t , uint32_t > ,
 st< int32_t , int8_t   > ,
 st< int32_t , int16_t  > ,
 st< int32_t , float    > ,
-st< int32_t , double   > 
+st< int32_t , double   >
 > Int32ToAllTypes;
 
 typedef testing::Types<
@@ -213,8 +213,8 @@ st< float , uint16_t > ,
 st< float , uint32_t > ,
 st< float , int8_t   > ,
 st< float , int16_t  > ,
-st< float , int32_t  > , 
-st< float , double   > 
+st< float , int32_t  > ,
+st< float , double   >
 > FloatToAllTypes;
 
 typedef testing::Types<
@@ -223,8 +223,8 @@ st< double , uint16_t > ,
 st< double , uint32_t > ,
 st< double , int8_t   > ,
 st< double , int16_t  > ,
-st< double , int32_t  > , 
-st< double , float    > 
+st< double , int32_t  > ,
+st< double , float    >
 > DoubleToAllTypes;
 
 typedef testing::Types<
@@ -234,7 +234,7 @@ ts< uint8_t , int8_t   > ,
 ts< uint8_t , int16_t  > ,
 ts< uint8_t , int32_t  > ,
 ts< uint8_t , float    > ,
-ts< uint8_t , double   > 
+ts< uint8_t , double   >
 > AllToUint8Types;
 
 typedef testing::Types<
@@ -244,7 +244,7 @@ ts< uint16_t , int8_t   > ,
 ts< uint16_t , int16_t  > ,
 ts< uint16_t , int32_t  > ,
 ts< uint16_t , float    > ,
-ts< uint16_t , double   > 
+ts< uint16_t , double   >
 > AllToUint16Types;
 
 typedef testing::Types<
@@ -254,7 +254,7 @@ ts< uint32_t , int8_t   > ,
 ts< uint32_t , int16_t  > ,
 ts< uint32_t , int32_t  > ,
 ts< uint32_t , float    > ,
-ts< uint32_t , double   > 
+ts< uint32_t , double   >
 > AllToUint32Types;
 
 
@@ -265,7 +265,7 @@ ts< int8_t , uint32_t > ,
 ts< int8_t , int16_t  > ,
 ts< int8_t , int32_t  > ,
 ts< int8_t , float    > ,
-ts< int8_t , double   > 
+ts< int8_t , double   >
 > AllToInt8Types;
 
 typedef testing::Types<
@@ -275,7 +275,7 @@ ts< int16_t , uint32_t > ,
 ts< int16_t , int8_t   > ,
 ts< int16_t , int32_t  > ,
 ts< int16_t , float    > ,
-ts< int16_t , double   > 
+ts< int16_t , double   >
 > AllToInt16Types;
 
 typedef testing::Types<
@@ -285,7 +285,7 @@ ts< int32_t , uint32_t > ,
 ts< int32_t , int8_t   > ,
 ts< int32_t , int16_t  > ,
 ts< int32_t , float    > ,
-ts< int32_t , double   > 
+ts< int32_t , double   >
 > AllToInt32Types;
 
 typedef testing::Types<
@@ -294,8 +294,8 @@ ts< float , uint16_t > ,
 ts< float , uint32_t > ,
 ts< float , int8_t   > ,
 ts< float , int16_t  > ,
-ts< float , int32_t  > , 
-ts< float , double   > 
+ts< float , int32_t  > ,
+ts< float , double   >
 > AllToFloatTypes;
 
 typedef testing::Types<
@@ -304,12 +304,12 @@ ts< double , uint16_t > ,
 ts< double , uint32_t > ,
 ts< double , int8_t   > ,
 ts< double , int16_t  > ,
-ts< double , int32_t  > , 
-ts< double , float    > 
+ts< double , int32_t  > ,
+ts< double , float    >
 > AllToDoubleTypes;
 
 
-template 
+template
 < class value_t
 , class format_t
 , class src_container_t = std::vector<value_t>
@@ -338,13 +338,13 @@ vf< uint8_t , pcm::format::s24be > ,
 vf< uint8_t , pcm::format::s24le > ,
 vf< uint8_t , pcm::format::s32be > ,
 vf< uint8_t , pcm::format::s32le > ,
-vf< uint8_t , pcm::format::u8 > , 
+vf< uint8_t , pcm::format::u8 > ,
 vf< uint8_t , pcm::format::u16be > ,
 vf< uint8_t , pcm::format::u16le > ,
 vf< uint8_t , pcm::format::u24be > ,
 vf< uint8_t , pcm::format::u24le > ,
 vf< uint8_t , pcm::format::u32be > ,
-vf< uint8_t , pcm::format::u32le > 
+vf< uint8_t , pcm::format::u32le >
 > Uint8ToAllPcmTypes;
 
 typedef testing::Types<
@@ -359,13 +359,13 @@ vf< uint16_t , pcm::format::s24be > ,
 vf< uint16_t , pcm::format::s24le > ,
 vf< uint16_t , pcm::format::s32be > ,
 vf< uint16_t , pcm::format::s32le > ,
-vf< uint16_t , pcm::format::u8 > , 
+vf< uint16_t , pcm::format::u8 > ,
 vf< uint16_t , pcm::format::u16be > ,
 vf< uint16_t , pcm::format::u16le > ,
 vf< uint16_t , pcm::format::u24be > ,
 vf< uint16_t , pcm::format::u24le > ,
 vf< uint16_t , pcm::format::u32be > ,
-vf< uint16_t , pcm::format::u32le > 
+vf< uint16_t , pcm::format::u32le >
 > Uint16ToAllPcmTypes;
 
 typedef testing::Types<
@@ -380,13 +380,13 @@ vf< uint32_t , pcm::format::s24be > ,
 vf< uint32_t , pcm::format::s24le > ,
 vf< uint32_t , pcm::format::s32be > ,
 vf< uint32_t , pcm::format::s32le > ,
-vf< uint32_t , pcm::format::u8 > , 
+vf< uint32_t , pcm::format::u8 > ,
 vf< uint32_t , pcm::format::u16be > ,
 vf< uint32_t , pcm::format::u16le > ,
 vf< uint32_t , pcm::format::u24be > ,
 vf< uint32_t , pcm::format::u24le > ,
 vf< uint32_t , pcm::format::u32be > ,
-vf< uint32_t , pcm::format::u32le > 
+vf< uint32_t , pcm::format::u32le >
 > Uint32ToAllPcmTypes;
 
 typedef testing::Types<
@@ -401,13 +401,13 @@ vf< int8_t , pcm::format::s24be > ,
 vf< int8_t , pcm::format::s24le > ,
 vf< int8_t , pcm::format::s32be > ,
 vf< int8_t , pcm::format::s32le > ,
-vf< int8_t , pcm::format::u8 > , 
+vf< int8_t , pcm::format::u8 > ,
 vf< int8_t , pcm::format::u16be > ,
 vf< int8_t , pcm::format::u16le > ,
 vf< int8_t , pcm::format::u24be > ,
 vf< int8_t , pcm::format::u24le > ,
 vf< int8_t , pcm::format::u32be > ,
-vf< int8_t , pcm::format::u32le > 
+vf< int8_t , pcm::format::u32le >
 > Int8ToAllPcmTypes;
 
 typedef testing::Types<
@@ -422,13 +422,13 @@ vf< int16_t , pcm::format::s24be > ,
 vf< int16_t , pcm::format::s24le > ,
 vf< int16_t , pcm::format::s32be > ,
 vf< int16_t , pcm::format::s32le > ,
-vf< int16_t , pcm::format::u8 > , 
+vf< int16_t , pcm::format::u8 > ,
 vf< int16_t , pcm::format::u16be > ,
 vf< int16_t , pcm::format::u16le > ,
 vf< int16_t , pcm::format::u24be > ,
 vf< int16_t , pcm::format::u24le > ,
 vf< int16_t , pcm::format::u32be > ,
-vf< int16_t , pcm::format::u32le > 
+vf< int16_t , pcm::format::u32le >
 > Int16ToAllPcmTypes;
 
 typedef testing::Types<
@@ -443,13 +443,13 @@ vf< int32_t , pcm::format::s24be > ,
 vf< int32_t , pcm::format::s24le > ,
 vf< int32_t , pcm::format::s32be > ,
 vf< int32_t , pcm::format::s32le > ,
-vf< int32_t , pcm::format::u8 > , 
+vf< int32_t , pcm::format::u8 > ,
 vf< int32_t , pcm::format::u16be > ,
 vf< int32_t , pcm::format::u16le > ,
 vf< int32_t , pcm::format::u24be > ,
 vf< int32_t , pcm::format::u24le > ,
 vf< int32_t , pcm::format::u32be > ,
-vf< int32_t , pcm::format::u32le > 
+vf< int32_t , pcm::format::u32le >
 > Int32ToAllPcmTypes;
 
 
@@ -465,13 +465,13 @@ vf< float , pcm::format::s24be > ,
 vf< float , pcm::format::s24le > ,
 vf< float , pcm::format::s32be > ,
 vf< float , pcm::format::s32le > ,
-vf< float , pcm::format::u8 > , 
+vf< float , pcm::format::u8 > ,
 vf< float , pcm::format::u16be > ,
 vf< float , pcm::format::u16le > ,
 vf< float , pcm::format::u24be > ,
 vf< float , pcm::format::u24le > ,
 vf< float , pcm::format::u32be > ,
-vf< float , pcm::format::u32le > 
+vf< float , pcm::format::u32le >
 > FloatToAllPcmTypes;
 
 typedef testing::Types<
@@ -486,11 +486,11 @@ vf< double , pcm::format::s24be > ,
 vf< double , pcm::format::s24le > ,
 vf< double , pcm::format::s32be > ,
 vf< double , pcm::format::s32le > ,
-vf< double , pcm::format::u8 > , 
+vf< double , pcm::format::u8 > ,
 vf< double , pcm::format::u16be > ,
 vf< double , pcm::format::u16le > ,
 vf< double , pcm::format::u24be > ,
 vf< double , pcm::format::u24le > ,
 vf< double , pcm::format::u32be > ,
-vf< double , pcm::format::u32le > 
+vf< double , pcm::format::u32le >
 > DoubleToAllPcmTypes;
