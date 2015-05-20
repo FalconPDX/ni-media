@@ -177,66 +177,66 @@ TYPED_TEST_CASE_P(PcmIteratorTest);
 // custom tests
 TYPED_TEST_P(PcmIteratorTest, custom_copy_to_pcm_test) 
 {
-  EXPECT_EQ(true, this->custom_copy_to_pcm() );
+  EXPECT_TRUE( this->custom_copy_to_pcm() );
 }
 
 TYPED_TEST_P(PcmIteratorTest, custom_copy_from_pcm_test)
 {
-  EXPECT_EQ(true, this->custom_copy_from_pcm() );
+  EXPECT_TRUE( this->custom_copy_from_pcm() );
 }
 
 TYPED_TEST_P(PcmIteratorTest, custom_copy_to_from_pcm_test) 
 {
-  EXPECT_EQ(true, this->custom_copy_to_from_pcm() );
+  EXPECT_TRUE( this->custom_copy_to_from_pcm() );
 }
 
 
 // std::copy tests
 TYPED_TEST_P( PcmIteratorTest, std_copy_to_pcm_test )
 {
-  EXPECT_EQ( true, this->std_copy_to_pcm() );
+  EXPECT_TRUE( this->std_copy_to_pcm() );
 }
 
 TYPED_TEST_P( PcmIteratorTest, std_copy_from_pcm_test )
 {
-  EXPECT_EQ( true, this->std_copy_from_pcm() );
+  EXPECT_TRUE( this->std_copy_from_pcm() );
 }
 
 TYPED_TEST_P(PcmIteratorTest, std_copy_to_from_pcm_test) 
 {
-  EXPECT_EQ(true, this->std_copy_to_from_pcm() );
+  EXPECT_TRUE( this->std_copy_to_from_pcm() );
 }
 
 // std::copy_n tests
 TYPED_TEST_P( PcmIteratorTest, std_copy_n_to_pcm_test )
 {
-  EXPECT_EQ( true, this->std_copy_n_to_pcm() );
+  EXPECT_TRUE( this->std_copy_n_to_pcm() );
 }
 
 TYPED_TEST_P( PcmIteratorTest, std_copy_n_from_pcm_test )
 {
-  EXPECT_EQ( true, this->std_copy_n_from_pcm() );
+  EXPECT_TRUE( this->std_copy_n_from_pcm() );
 }
 
 TYPED_TEST_P(PcmIteratorTest, std_copy_n_to_from_pcm_test) 
 {
-  EXPECT_EQ(true, this->std_copy_n_to_from_pcm() );
+  EXPECT_TRUE( this->std_copy_n_to_from_pcm() );
 }
 
 // boost range tests
 TYPED_TEST_P( PcmIteratorTest, boost_range_copy_to_pcm_test )
 {
-  EXPECT_EQ( true, this->boost_range_copy_to_pcm() );
+  EXPECT_TRUE( this->boost_range_copy_to_pcm() );
 }
 
 TYPED_TEST_P( PcmIteratorTest, boost_range_copy_from_pcm_test )
 {
-  EXPECT_EQ( true, this->boost_range_copy_from_pcm() );
+  EXPECT_TRUE( this->boost_range_copy_from_pcm() );
 }
 
 TYPED_TEST_P(PcmIteratorTest, boost_range_copy_to_from_pcm_test) 
 {
-  EXPECT_EQ(true, this->boost_range_copy_to_from_pcm() );
+  EXPECT_TRUE( this->boost_range_copy_to_from_pcm() );
 }
 
 // Type-parameterized tests involve one extra step: you have to
