@@ -21,7 +21,7 @@
 #include <limits>
 #include <vector>
 #include <list>
-
+#include <cmath>
 #include <cstdint>
 
 
@@ -120,18 +120,18 @@ namespace number
 } // namespace number
 
 
-template <class target_t, class source_t>
+template <class Target, class Source>
 struct ts
 {
-  typedef target_t target_t;
-  typedef source_t source_t;
+  using target_t = Target;
+  using source_t = Source;
 };
 
-template <class source_t, class target_t>
+template <class Source, class Target>
 struct st
 {
-  typedef target_t target_t;
-  typedef source_t source_t;
+  using target_t = Target;
+  using source_t = Source;
 };
 
 
