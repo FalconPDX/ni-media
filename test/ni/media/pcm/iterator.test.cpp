@@ -24,7 +24,7 @@
 
 // Then we define a test fixture class template.
 template <class Traits>
-class iteratorTest : public testing::Test {
+class PcmIteratorTest : public testing::Test {
 
 
 private:
