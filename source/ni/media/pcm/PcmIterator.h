@@ -26,7 +26,7 @@ namespace pcm
     class value_t,
     class iterator_t,
     class format_t
-  > 
+  >
   class iterator;
 
   template<
@@ -37,39 +37,29 @@ namespace pcm
   struct iterator_proxy
   {
     typedef typename::pcm::converter<value_t,iterator_t, format_t> converter_t;
-
-    iterator_proxy( const iterator_proxy& other )
-      : m_converter( other.m_converter )
-      , m_iter( other.m_iter )
-    {
-    }
+    
+    iterator_proxy() = default;
+    iterator_proxy( const iterator_proxy& other ) = default;
 
     iterator_proxy& operator = ( value_t val )
     {
-      m_converter.write( val, m_iter );
+      converter.write( val, iter );
       return *this;
     }
 
     operator value_t () const
     {
-      return m_converter.read( m_iter );
+      return converter.read( iter );
     }
 
   private:
 
     friend class iterator<value_t,iterator_t,format_t>;
 
+    iterator_proxy( const converter_t& c, const iterator_t& i ) : converter( c ) , iter( i ){}
 
-    iterator_proxy(); // delete
-
-    iterator_proxy( const converter_t& converter, const iterator_t& iter )
-      : m_converter( converter )
-      , m_iter( iter )
-    {
-    }
-
-    converter_t     m_converter;
-    iterator_t      m_iter;
+    converter_t     converter;
+    iterator_t      iter;
   };
 
 
@@ -77,7 +67,7 @@ namespace pcm
     typename value_t,
     typename iterator_t,
     typename format_t = ::pcm::format
-  > 
+  >
   class iterator
     : public boost::iterator_facade<
     iterator<value_t,iterator_t,format_t>,
@@ -95,7 +85,7 @@ namespace pcm
       >
       base_t;
 
-    typedef iterator<value_t,iterator_t,format_t>                       this_t; 
+    typedef iterator<value_t,iterator_t,format_t>                       this_t;
     typedef iterator_proxy<value_t,iterator_t,format_t>                 proxy_t;
     typedef typename proxy_t::converter_t                               converter_t;
     typedef typename std::iterator_traits<iterator_t>::difference_type  step_t;
@@ -107,14 +97,11 @@ namespace pcm
     typedef typename base_t::difference_type    difference_type;
     typedef typename base_t::reference          reference;
 
-    iterator( const iterator& other )
-      : m_proxy( other.m_proxy )
-      , m_step( other.m_step )
-    {
-    }
+    iterator() = default;
+    iterator( const iterator& other ) = default;
 
     iterator( iterator_t iter, const ::pcm::format & fmt )
-      : m_proxy( converter_t(fmt), iter )
+      : m_proxy(converter_t( fmt ), iter)
       , m_step( fmt.getBitwidth() / 8 )
     {
     }
@@ -123,27 +110,27 @@ namespace pcm
 
     void increment()
     {
-      std::advance( m_proxy.m_iter, m_step );
+      std::advance( m_proxy.iter, m_step );
     }
 
     void decrement()
     {
-      std::advance( m_proxy.m_iter, -m_step );
+      std::advance( m_proxy.iter, -m_step );
     }
 
     void advance( difference_type offset )
     {
-      std::advance( m_proxy.m_iter, offset * m_step );
+      std::advance( m_proxy.iter, offset * m_step );
     }
 
     difference_type distance_to( const iterator& other ) const
     {
-      return std::distance( m_proxy.m_iter, other.m_proxy.m_iter ) / m_step;
+      return std::distance( m_proxy.iter, other.m_proxy.iter ) / m_step;
     }
 
     bool equal( const iterator& other ) const
     {
-      return m_proxy.m_iter == other.m_proxy.m_iter;
+      return m_proxy.iter == other.m_proxy.iter;
     }
 
     reference dereference() const
