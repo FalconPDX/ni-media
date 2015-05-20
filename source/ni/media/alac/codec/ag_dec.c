@@ -2,25 +2,25 @@
  * Copyright (c) 2011 Apple Inc. All rights reserved.
  *
  * @APPLE_APACHE_LICENSE_HEADER_START@
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * @APPLE_APACHE_LICENSE_HEADER_END@
  */
 
 /*
 	File:		ag_dec.c
-	
+
 	Contains:   Adaptive Golomb decode routines.
 
 	Copyright:	(c) 2001-2011 Apple, Inc.
@@ -76,7 +76,7 @@ void set_ag_params(AGParamRecPtr params, uint32_t m, uint32_t p, uint32_t k, uin
 	params->pb = p;
 	params->kb = k;
 	params->wb = (1u<<params->kb)-1;
-	params->qb = QB-params->pb; 
+	params->qb = QB-params->pb;
 	params->fw = f;
 	params->sw = s;
 	params->maxrun = maxrun;
@@ -118,7 +118,7 @@ static uint32_t ALWAYS_INLINE read32bit( uint8_t * buffer )
 {
 	// embedded CPUs typically can't read unaligned 32-bit words so just read the bytes
 	uint32_t		value;
-	
+
 	value = ((uint32_t)buffer[0] << 24) | ((uint32_t)buffer[1] << 16) |
 			 ((uint32_t)buffer[2] << 8) | (uint32_t)buffer[3];
 	return value;
@@ -138,7 +138,7 @@ getstreambits( uint8_t *in, int32_t bitoffset, int32_t numbits )
 	uint32_t	load1, load2;
 	uint32_t	byteoffset = bitoffset / 8;
 	uint32_t	result;
-	
+
 	//Assert( numbits <= 32 );
 
 	load1 = read32bit( in + byteoffset );
@@ -152,7 +152,7 @@ getstreambits( uint8_t *in, int32_t bitoffset, int32_t numbits )
 		load2shift = (8-(numbits + (bitoffset & 0x7)-32));
 		load2 >>= load2shift;
 		result >>= (32-numbits);
-		result |= load2;		
+		result |= load2;
 	}
 	else
 	{
@@ -163,7 +163,7 @@ getstreambits( uint8_t *in, int32_t bitoffset, int32_t numbits )
 	// behavior so don't try to shift by 32
 	if ( numbits != (sizeof(result) * 8) )
 		result &= ~(0xfffffffful << numbits);
-	
+
 	return result;
 }
 
@@ -178,7 +178,7 @@ static int32_t dyn_get(unsigned char *in, uint32_t *bitPos, uint32_t m, uint32_t
 	streamlong = read32bit( in + (tempbits >> 3) );
     streamlong <<= (tempbits & 7);
 
-    /* find the number of bits in the prefix */ 
+    /* find the number of bits in the prefix */
     {
         uint32_t	notI = ~streamlong;
     	pre = lead( notI);
@@ -203,7 +203,7 @@ static int32_t dyn_get(unsigned char *in, uint32_t *bitPos, uint32_t m, uint32_t
         streamlong <<= pre+1;
         v = get_next_fromlong(streamlong, k);
         tempbits += k;
-    
+
         result = pre*m + v-1;
 
         if(v<2) {
@@ -223,31 +223,31 @@ static int32_t dyn_get_32bit( uint8_t * in, uint32_t * bitPos, int32_t m, int32_
 	uint32_t		v;
 	uint32_t		streamlong;
 	uint32_t		result;
-	
+
 	streamlong = read32bit( in + (tempbits >> 3) );
 	streamlong <<= (tempbits & 7);
 
-	/* find the number of bits in the prefix */ 
+	/* find the number of bits in the prefix */
 	{
 		uint32_t notI = ~streamlong;
 		result = lead( notI);
 	}
-	
+
 	if(result >= MAX_PREFIX_32)
 	{
 		result = getstreambits(in, tempbits+MAX_PREFIX_32, maxbits);
 		tempbits += MAX_PREFIX_32 + maxbits;
 	}
 	else
-	{		
+	{
 		/* all of the bits must fit within the long we have loaded*/
 		//Assert(k<=14);
 		//Assert(result<MAX_PREFIX_32);
 		//Assert(result+1+k <= 32);
-		
+
 		tempbits += result;
 		tempbits += 1;
-		
+
 		if (k != 1)
 		{
 			streamlong <<= result+1;
@@ -255,7 +255,7 @@ static int32_t dyn_get_32bit( uint8_t * in, uint32_t * bitPos, int32_t m, int32_
 			tempbits += k;
 			tempbits -= 1;
 			result = result*m;
-			
+
 			if(v>=2)
 			{
 				result += (v-1);
@@ -296,7 +296,7 @@ int32_t dyn_decomp( AGParamRecPtr params, BitBuffer * bitstream, int32_t * pc, i
     c = 0;
 	status = ALAC_noErr;
 
-    while (c < numSamples)
+    while (c < (uint32_t)numSamples)
     {
 		// bail if we've run off the end of the buffer
     	RequireAction( bitPos < maxPos, status = kALAC_ParamError; goto Exit; );
@@ -306,13 +306,13 @@ int32_t dyn_decomp( AGParamRecPtr params, BitBuffer * bitstream, int32_t * pc, i
 
         k = arithmin(k, kb_local);
         m = (1<<k)-1;
-        
+
 		n = dyn_get_32bit( in, &bitPos, m, k, maxSize );
 
         // least significant bit is sign bit
         {
-        	uint32_t	ndecode = n + zmode;
-            int32_t		multiplier = (- (ndecode&1));
+            uint32_t	ndecode = n + zmode;
+            int32_t		multiplier = - (int32_t)(ndecode&1);
 
             multiplier |= 1;
             del = ((ndecode+1) >> 1) * (multiplier);
@@ -330,7 +330,7 @@ int32_t dyn_decomp( AGParamRecPtr params, BitBuffer * bitstream, int32_t * pc, i
 
         zmode = 0;
 
-        if (((mb << MMULSHIFT) < QB) && (c < numSamples))
+        if (((mb << (uint32_t)MMULSHIFT) < (uint32_t)QB) && (c < (uint32_t)numSamples))
         {
             zmode = 1;
             k = lead(mb) - BITOFF+((mb+MOFF)>>MDENSHIFT);
@@ -338,12 +338,12 @@ int32_t dyn_decomp( AGParamRecPtr params, BitBuffer * bitstream, int32_t * pc, i
 
             n = dyn_get(in, &bitPos, mz, k);
 
-            RequireAction(c+n <= numSamples, status = kALAC_ParamError; goto Exit; );
+            RequireAction(c+n <= (uint32_t)numSamples, status = kALAC_ParamError; goto Exit; );
 
             for(j=0; j < n; j++)
             {
                 *outPtr++ = 0;
-                ++c;                    
+                ++c;
             }
 
             if(n >= 65535)

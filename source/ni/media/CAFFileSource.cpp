@@ -471,7 +471,7 @@ void CAFFileSource::readHeader()
 
   // In order to retrieve the total data size we need to decode the entire file
   size_t numDataBytes = 0;
-  for ( auto numBytes = 0; numBytes = decodeBlock() ; numDataBytes += numBytes );
+  for ( auto numBytes = 0; (numBytes = decodeBlock()) != 0 ; numDataBytes += numBytes );
   // Then, seek back to beginning
   FindCAFFDataStart( source, &m_inputDataPos, &m_inputDataSize );
   FindCAFFPacketTableStart( source, &m_packetTablePos, &m_packetTableSize );

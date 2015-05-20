@@ -291,6 +291,6 @@ void AiffFileSource::readHeader()
   info.format         (format);
   info.numChannels    (commChunk.numChannels);
   info.numSampleFrames(commChunk.numSampleFrames);
-  info.sampleRate     (IEEE80_to_double(commChunk.extSampleRate));
+  info.sampleRate     (size_t(IEEE80_to_double(commChunk.extSampleRate)));
   audioStreamInfo(info);
 }
