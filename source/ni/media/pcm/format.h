@@ -12,7 +12,7 @@
 //!--------------------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "PcmTraits.h"
+#include "traits.h"
 
 namespace pcm {
 
@@ -72,7 +72,7 @@ namespace pcm {
     {
       return ( m_id == other.m_id );
     }
-    
+
     bool operator != ( const format& other ) const
     {
       return ( m_id != other.m_id );

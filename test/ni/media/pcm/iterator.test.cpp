@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ni/media/pcm/PcmIterator.h>
+#include <ni/media/pcm/iterator.h>
 
 #include <boost/range/iterator_range.hpp>
 #include <boost/range/algorithm/copy.hpp>
@@ -24,7 +24,7 @@
 
 // Then we define a test fixture class template.
 template <class Traits>
-class PcmIteratorTest : public testing::Test {
+class iteratorTest : public testing::Test {
 
 
 private:

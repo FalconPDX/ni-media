@@ -3,7 +3,7 @@
 //! \author Marc Boucek
 //! \date Oct/2013
 //!
-//! \class PcmTraits
+//! \class traits
 //!
 //! \brief Pcm traits definitions.
 //!

@@ -13,8 +13,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include <ni/media/pcm/PcmFormat.h>
-#include <ni/media/pcm/PcmTraits.h>
+#include <ni/media/pcm/format.h>
+#include <ni/media/pcm/traits.h>
 
 #include <gtest/gtest.h>
 

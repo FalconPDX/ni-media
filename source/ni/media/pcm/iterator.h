@@ -3,7 +3,7 @@
 //! \author Marc Boucek
 //! \date Oct/2013
 //!
-//! \class PcmIterator
+//! \class iterator
 //!
 //! \brief Iterator for reading / writing pcm data
 //!
@@ -12,8 +12,8 @@
 //!--------------------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "PcmTraits.h"
-#include "PcmConverter.h"
+#include "traits.h"
+#include "converter.h"
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -37,7 +37,7 @@ namespace pcm
   struct iterator_proxy
   {
     typedef typename::pcm::converter<value_t,iterator_t, format_t> converter_t;
-    
+
     iterator_proxy() = default;
     iterator_proxy( const iterator_proxy& other ) = default;
 

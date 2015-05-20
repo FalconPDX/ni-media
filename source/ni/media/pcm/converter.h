@@ -3,7 +3,7 @@
 //! \author Marc Boucek
 //! \date Oct/2013
 //!
-//! \class PcmConverter
+//! \class converter
 //!
 //! \brief Helper functions for reading / writing pcm data
 //!
@@ -12,8 +12,8 @@
 //!--------------------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "PcmTraits.h"
-#include "PcmFormat.h"
+#include "traits.h"
+#include "format.h"
 
 #include <boost/cstdint.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -44,19 +44,19 @@ namespace pcm {
 
     //! For float type to int type conversion.
     //! value is a number that depends on int_t
-    //! . . . 
+    //! . . .
     template <class float_t, size_t bits>
     struct promote_float
     {
-      typedef typename 
+      typedef typename
         boost::mpl::if_<
         boost::mpl::greater<
           boost::mpl::int_<bits>,
-          boost::mpl::int_<23> 
+          boost::mpl::int_<23>
         >
         , double
-        , float 
-        >::type type; 
+        , float
+        >::type type;
     };
 
     template <size_t bits>
@@ -90,7 +90,7 @@ namespace pcm {
       BOOST_MPL_ASSERT_RELATION( sizeof(target_t), == ,sizeof(source_t) );
 
       typedef boost::integral_constant<
-        bool, 
+        bool,
         boost::is_signed<target_t>::value != boost::is_signed<source_t>::value
       > truth_type;
 
@@ -141,7 +141,7 @@ namespace pcm {
     typename boost::enable_if<
       boost::mpl::greater<
         boost::mpl::sizeof_<target_t>,
-        boost::mpl::sizeof_<source_t> 
+        boost::mpl::sizeof_<source_t>
       >, target_t
     >::type shift_cast(source_t val)
     {
@@ -258,10 +258,10 @@ namespace pcm {
     {
     };
 
-    template <> struct 
+    template <> struct
       make_intermediate< ::pcm::floating_point   , ::pcm::_32bit > { typedef float type; };
 
-    template <> struct 
+    template <> struct
       make_intermediate< ::pcm::floating_point   , ::pcm::_64bit > { typedef double type; };
 
     template <> struct
@@ -337,14 +337,14 @@ namespace pcm {
 
       if ( is_native_endian<format_t>::value )
       {
-        for ( size_t k = io::begin_t::value; k < io::end_t::value; ++k, ++iter ) 
+        for ( size_t k = io::begin_t::value; k < io::end_t::value; ++k, ++iter )
         {
           tmp.byte[k] = *iter;
         }
       }
       else
       {
-        for ( size_t k = io::end_t::value; k > io::begin_t::value; ++iter ) 
+        for ( size_t k = io::end_t::value; k > io::begin_t::value; ++iter )
         {
           tmp.byte[--k] = *iter;
         }
@@ -370,9 +370,9 @@ namespace pcm {
           *iter = tmp.byte[k];
         }
       }
-      else 
+      else
       {
-        for ( size_t k = io::end_t::value; k > io::begin_t::value; ++iter ) 
+        for ( size_t k = io::end_t::value; k > io::begin_t::value; ++iter )
         {
           *iter = tmp.byte[--k];
         }
@@ -439,7 +439,7 @@ namespace pcm {
       static const std::array< reader_signature<value_t,iterator_t> , sizeof...(Tags) >  readers;
       static const std::array< writer_signature<value_t,iterator_t> , sizeof...(Tags) >  writers;
     };
-    
+
    template<
     class value_t,
     class iterator_t,

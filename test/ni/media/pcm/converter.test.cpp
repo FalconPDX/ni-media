@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ni/media/pcm/PcmConverter.h>
+#include <ni/media/pcm/converter.h>
 
 #include "PcmTestTypes.h"
 
