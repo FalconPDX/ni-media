@@ -19,12 +19,14 @@ add_src_file_mac(FILES_media "ni/media/impl/MP4FileSourceMac.cpp"  WITH_HEADER)
 add_src_file_win(FILES_media "ni/media/impl/MP4FileSourceWin.cpp"  WITH_HEADER)
 add_src_group   (FILES_All media FILES_media)
 
-add_src_file    (FILES_media_pcm "ni/media/pcm/converter.h"                           )
-add_src_file    (FILES_media_pcm "ni/media/pcm/format.h"                     )
-add_src_file    (FILES_media_pcm "ni/media/pcm/iterator.h"                     )
+add_src_file    (FILES_media_pcm "ni/media/pcm/converter.h")
+add_src_file    (FILES_media_pcm "ni/media/pcm/format.h")
+add_src_file    (FILES_media_pcm "ni/media/pcm/iterator.h")
 add_src_file    (FILES_media_pcm "ni/media/pcm/traits.h")
 add_src_group   (FILES_All media_pcm FILES_media_pcm)
 
+add_src_file    (FILES_media_pcm_range "ni/media/pcm/range/converted.h")
+add_src_group   (FILES_All media_pcm_range FILES_media_pcm_range)
 #--------------------------------------------------------------------
 # linking
 #--------------------------------------------------------------------
