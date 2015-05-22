@@ -359,7 +359,7 @@ auto MP4FileSource::Impl::readFromFile(const FrameRange& range, char* dst) -> Fr
     block = consumeBlock();
     if (not block || not updateBuffer(std::move(block))) return remaining;
 
-    auto offset = remaining.begin()->lower() * m_streamInfo.bytesPerSampleFrame();
+    auto offset = (remaining.begin()->lower() - range.lower()) * m_streamInfo.bytesPerSampleFrame();
     remaining   = readFromBuffer(*remaining.begin(), dst + offset);
   }
 
