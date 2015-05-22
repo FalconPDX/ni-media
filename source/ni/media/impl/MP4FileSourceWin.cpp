@@ -233,8 +233,8 @@ MP4FileSource::Impl::~Impl()
 
 std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way)
 {
-  auto sizeRatio      = m_streamInfo.bytesPerSampleFrame();
-  offset_t nominalPos = offset / sizeRatio, endPos = m_streamInfo.numSampleFrames() - 1;
+  auto frameSize      = m_streamInfo.bytesPerSampleFrame();
+  offset_t nominalPos = offset / frameSize, endPos = m_streamInfo.numSampleFrames() - 1;
 
   switch (way)
   {
@@ -256,16 +256,16 @@ std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way
     m_adjustedPos = adjustedPos;
   }
 
-  return boost::iostreams::stream_offset_to_streamoff(m_nominalPos * sizeRatio);
+  return boost::iostreams::stream_offset_to_streamoff(m_nominalPos * frameSize);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
 std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize dstSize)
 {
-  auto sizeRatio = m_streamInfo.bytesPerSampleFrame();
+  auto frameSize = m_streamInfo.bytesPerSampleFrame();
   auto endPos    = boost::algorithm::clamp<offset_t>(
-    m_nominalPos + dstSize / sizeRatio, 0, m_streamInfo.numSampleFrames() - 1);
+    m_nominalPos + dstSize / frameSize, 0, m_streamInfo.numSampleFrames() - 1);
   auto numFrames = endPos - m_nominalPos;
 
   if (numFrames > 0)
@@ -284,14 +284,14 @@ std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize dstSize)
 
     for (const auto& range : remainingSecondPass)
     {
-      auto offset = (range.lower() - toFill.lower()) * sizeRatio;
-      std::fill_n(dst + offset, size(range) * sizeRatio, char(0));
+      auto offset = (range.lower() - toFill.lower()) * frameSize;
+      std::fill_n(dst + offset, size(range) * frameSize, char(0));
     }
   }
 
   m_nominalPos  += numFrames;
   m_adjustedPos += numFrames;
-  return numFrames * sizeRatio;
+  return numFrames * frameSize;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

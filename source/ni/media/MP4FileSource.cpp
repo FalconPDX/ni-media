@@ -37,7 +37,7 @@ std::streampos MP4FileSource::seek(boost::iostreams::stream_offset offset, BOOST
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streamsize MP4FileSource::read(char_type* dst, std::streamsize numFrames)
+std::streamsize MP4FileSource::read(char_type* dst, std::streamsize dstSize)
 {
-  return m_impl ? m_impl->read(dst, numFrames) : 0;
+  return m_impl ? m_impl->read(dst, dstSize) : 0;
 }
