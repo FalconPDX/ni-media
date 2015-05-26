@@ -1,4 +1,4 @@
-#include "MP4FileSourceMac.h"
+#include "CoreAudioFileSource.h"
 
 #include <boost/algorithm/clamp.hpp>
 
@@ -38,7 +38,7 @@ AudioStreamInfo buildOutStreamInfo(ExtAudioFileRef& media)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-MP4FileSource::Impl::Impl(const std::string& path)
+CoreAudioFileSource::CoreAudioFileSource(const std::string& path)
 {
   auto url = CFURLCreateFromFileSystemRepresentation(
     nullptr, reinterpret_cast<const UInt8*>(path.c_str()), path.size(), false);
@@ -82,14 +82,14 @@ MP4FileSource::Impl::Impl(const std::string& path)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-MP4FileSource::Impl::~Impl() { ExtAudioFileDispose(m_media); }
+CoreAudioFileSource::~CoreAudioFileSource() { ExtAudioFileDispose(m_media); }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way)
+std::streampos CoreAudioFileSource::seek(offset_type offset, BOOST_IOS::seekdir way)
 {
-  size_t frameSize  = m_streamInfo.bytesPerSampleFrame();
-  offset_t framePos = offset / frameSize, endPos = m_streamInfo.numSampleFrames() - 1;
+  size_t frameSize     = m_streamInfo.bytesPerSampleFrame();
+  offset_type framePos = offset / frameSize, endPos = m_streamInfo.numSampleFrames() - 1;
 
   switch (way)
   {
@@ -106,10 +106,10 @@ std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize size)
+std::streamsize CoreAudioFileSource::read(char* dst, std::streamsize size)
 {
-  UInt32 numFramesRead = 0;
-  offset_t endPos      = m_streamInfo.numSampleFrames() - 1;
+  UInt32 numFramesRead    = 0;
+  offset_type endPos      = m_streamInfo.numSampleFrames() - 1;
 
   auto frameSize = m_streamInfo.bytesPerSampleFrame();
   auto maxFrames = size / frameSize;

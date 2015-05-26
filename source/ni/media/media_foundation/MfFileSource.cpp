@@ -231,7 +231,7 @@ MfFileSource::~MfFileSource() {}
 
 std::streampos MfFileSource::seek(offset_type offset, BOOST_IOS::seekdir way)
 {
-  auto frameSize      = m_streamInfo.bytesPerSampleFrame();
+  auto frameSize         = m_streamInfo.bytesPerSampleFrame();
   offset_type nominalPos = offset / frameSize, endPos = m_streamInfo.numSampleFrames() - 1;
 
   switch (way)

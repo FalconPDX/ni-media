@@ -18,22 +18,22 @@
 #include <ni/media/MP4FileSource.h>
 
 
-class MP4FileSource::Impl
+class CoreAudioFileSource
 {
-  using offset_t = boost::iostreams::stream_offset;
+  using offset_type = boost::iostreams::stream_offset;
 
 public:
-  Impl(const std::string& path);
- ~Impl();
+  CoreAudioFileSource(const std::string& path);
+ ~CoreAudioFileSource();
 
   const AudioStreamInfo& audioStreamInfo() const { return m_streamInfo; }
 
-  std::streampos  seek(offset_t, BOOST_IOS::seekdir);
+  std::streampos  seek(offset_type, BOOST_IOS::seekdir);
   std::streamsize read(char*, std::streamsize);
 
 private:
   ExtAudioFileRef m_media;
   AudioStreamInfo m_streamInfo;
 
-  offset_t        m_framePos = 0;
+  offset_type     m_framePos = 0;
 };
