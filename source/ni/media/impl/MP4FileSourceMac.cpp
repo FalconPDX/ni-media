@@ -98,9 +98,9 @@ std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way
   default:             framePos += m_framePos;
   }
 
-   framePos = boost::algorithm::clamp(framePos, 0, endPos);
+  framePos = boost::algorithm::clamp(framePos, 0, endPos);
 
-  if (m_framePos != offset && ExtAudioFileSeek(m_media, framePos) != noErr) m_framePos = framePos;
+  if (m_framePos != framePos && ExtAudioFileSeek(m_media, framePos) == noErr) m_framePos = framePos;
   return boost::iostreams::stream_offset_to_streamoff(m_framePos * frameSize);
 }
 
