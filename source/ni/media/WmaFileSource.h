@@ -21,11 +21,11 @@ class MfFileSource;
 
 class WmaFileSource : private AudioFileSource
 {
+public:
   using AudioFileSource::char_type;
   using AudioFileSource::category;
   using AudioFileSource::audioStreamInfo;
 
-public:
   WmaFileSource(const std::string& path);
 
   void open(const std::string& path);
