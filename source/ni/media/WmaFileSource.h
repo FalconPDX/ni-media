@@ -4,9 +4,9 @@
 //!
 //! \date Mar/2015
 //!
-//! \class Mp4FileSource
+//! \class WmaFileSource
 //!
-//! \brief Class to read Mp4 audio files.
+//! \brief Class to read wma audio files.
 //!
 //! \copyright NATIVE INSTRUMENTS, Berlin, Germany, ALL RIGHTS RESERVED
 //!
@@ -17,20 +17,16 @@
 
 #include <ni/media/AudioFilesource.h>
 
-#if BOOST_OS_MACOS
-  class CoreAudioFileSource;
-#elif BOOST_OS_WINDOWS
-  class MfFileSource;
-#endif
+class MfFileSource;
 
-class Mp4FileSource : private AudioFileSource
+class WmaFileSource : private AudioFileSource
 {
-public:
   using AudioFileSource::char_type;
   using AudioFileSource::category;
   using AudioFileSource::audioStreamInfo;
 
-  Mp4FileSource(const std::string& path);
+public:
+  WmaFileSource(const std::string& path);
 
   void open(const std::string& path);
   void close();
@@ -41,9 +37,5 @@ public:
   std::streamsize read(char_type*, std::streamsize);
 
 private:
-#if BOOST_OS_MACOS
-  std::shared_ptr<CoreAudioFileSource> m_impl;
-#elif BOOST_OS_WINDOWS
-  std::shared_ptr<MfFileSource>        m_impl;
-#endif
+  std::shared_ptr<MfFileSource> m_impl;
 };
