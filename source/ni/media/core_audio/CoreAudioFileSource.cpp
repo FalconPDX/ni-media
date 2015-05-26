@@ -1,4 +1,4 @@
-#include "MP4FileSourceMac.h"
+#include "CoreAudioFileSource.h"
 
 #include <boost/algorithm/clamp.hpp>
 
@@ -38,7 +38,7 @@ AudioStreamInfo buildOutStreamInfo(ExtAudioFileRef& media)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-MP4FileSource::Impl::Impl(const std::string& path)
+CoreAudioFileSource::CoreAudioFileSource(const std::string& path)
 {
   auto url = CFURLCreateFromFileSystemRepresentation(
     nullptr, reinterpret_cast<const UInt8*>(path.c_str()), path.size(), false);
@@ -82,14 +82,14 @@ MP4FileSource::Impl::Impl(const std::string& path)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-MP4FileSource::Impl::~Impl() { ExtAudioFileDispose(m_media); }
+CoreAudioFileSource::~CoreAudioFileSource() { ExtAudioFileDispose(m_media); }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streampos MP4FileSource::Impl::seek(offset_t charOffset, BOOST_IOS::seekdir way)
+std::streampos CoreAudioFileSource::seek(offset_type offset, BOOST_IOS::seekdir way)
 {
-  size_t sizeRatio  = m_streamInfo.bytesPerSampleFrame();
-  offset_t framePos = charOffset / sizeRatio, endPos = m_streamInfo.numSampleFrames() - 1;
+  size_t frameSize     = m_streamInfo.bytesPerSampleFrame();
+  offset_type framePos = offset / frameSize, endPos = m_streamInfo.numSampleFrames() - 1;
 
   switch (way)
   {
@@ -98,21 +98,21 @@ std::streampos MP4FileSource::Impl::seek(offset_t charOffset, BOOST_IOS::seekdir
   default:             framePos += m_framePos;
   }
 
-   framePos = boost::algorithm::clamp(framePos, 0, endPos);
+  framePos = boost::algorithm::clamp(framePos, 0, endPos);
 
-  if (m_framePos != charOffset && ExtAudioFileSeek(m_media, framePos) != noErr) m_framePos = framePos;
-  return boost::iostreams::stream_offset_to_streamoff(m_framePos * sizeRatio);
+  if (m_framePos != framePos && ExtAudioFileSeek(m_media, framePos) == noErr) m_framePos = framePos;
+  return boost::iostreams::stream_offset_to_streamoff(m_framePos * frameSize);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize size)
+std::streamsize CoreAudioFileSource::read(char* dst, std::streamsize size)
 {
-  UInt32 numFramesRead = 0;
-  offset_t endPos      = m_streamInfo.numSampleFrames() - 1;
+  UInt32 numFramesRead    = 0;
+  offset_type endPos      = m_streamInfo.numSampleFrames() - 1;
 
-  auto sizeRatio = m_streamInfo.bytesPerSampleFrame();
-  auto maxFrames = size / sizeRatio;
+  auto frameSize = m_streamInfo.bytesPerSampleFrame();
+  auto maxFrames = size / frameSize;
 
   if (size > 0 && m_framePos < endPos)
   {
@@ -134,7 +134,7 @@ std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize size)
   }
 
   // Fill the rest with silence
-  size_t numCharsRead = numFramesRead * sizeRatio;
+  size_t numCharsRead = numFramesRead * frameSize;
   std::fill(dst + numCharsRead, dst + size, char(0));
 
   return numCharsRead;

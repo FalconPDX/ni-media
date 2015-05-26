@@ -1,4 +1,4 @@
-#include "MP4FileSourceWin.h"
+#include "MfFileSource.h"
 
 #include <ciso646>
 #include <codecvt>
@@ -32,7 +32,7 @@ namespace
 // RAII wrappers for WMF interfaces
 //----------------------------------------------------------------------------------------------------------------------
 
-template <typename MfType> using MfTypePtr = MP4FileSource::Impl::MfTypePtr<MfType>;
+template <typename MfType> using MfTypePtr = MfFileSource::MfTypePtr<MfType>;
 
 template< class C >                    struct get_MF_type_impl : get_MF_type_impl< decltype(&C::operator()) > {};
 template< class C, typename MFType >   struct get_MF_type_impl< HRESULT (C::*)(MFType**) > : get_MF_type_impl< HRESULT(MFType**) > {};
@@ -73,18 +73,18 @@ bool setPosition(IMFSourceReader& reader, LONGLONG time100ns)
     && SUCCEEDED(PropVariantClear(&var));
 }
 
-MP4FileSource::Impl::offset_t time100nsToFrames(LONGLONG time100ns, size_t sampleRate)
+MfFileSource::offset_type time100nsToFrames(LONGLONG time100ns, size_t sampleRate)
 {
   static const LONGLONG secTo100ns = 10000000;
 
   // We need to be accurate to a single frame when doing this conversion, and the timestamp provided by WMF can be
   // off by a few nanoseconds, so we round it off.
 
-  using return_type = MP4FileSource::Impl::offset_t;
+  using return_type = MfFileSource::offset_type;
   return return_type(std::round(double(time100ns) * sampleRate / secTo100ns));
 }
 
-LONGLONG framesTo100ns(MP4FileSource::Impl::offset_t frame, size_t sampleRate)
+LONGLONG framesTo100ns(MfFileSource::offset_type frame, size_t sampleRate)
 {
   static const LONGLONG secTo100ns = 10000000;
   return frame * secTo100ns / sampleRate;
@@ -92,7 +92,7 @@ LONGLONG framesTo100ns(MP4FileSource::Impl::offset_t frame, size_t sampleRate)
 
 } // namespace anonymous
 
-struct MP4FileSource::Impl::MfInitializer
+struct MfFileSource::MfInitializer
 {
  MfInitializer()
  {
@@ -106,13 +106,13 @@ struct MP4FileSource::Impl::MfInitializer
 ~MfInitializer() { if (SUCCEEDED(MFShutdown())) CoUninitialize(); }
 };
 
-struct MP4FileSource::Impl::MfBlock
+struct MfFileSource::MfBlock
 {
   FrameRange           range;
   MfTypePtr<IMFSample> data;
 };
 
-class MP4FileSource::Impl::MfBuffer
+class MfFileSource::MfBuffer
 {
   using Buffer      = MfTypePtr<IMFMediaBuffer>;
   using Sample      = MfTypePtr<IMFSample>;
@@ -142,8 +142,10 @@ private:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-MP4FileSource::Impl::Impl(const std::string& path) :
-  m_initializer(new MfInitializer)
+MfFileSource::MfFileSource(const std::string& path, offset_type readOffset) :
+  m_initializer(new MfInitializer),
+  m_readOffset (readOffset),
+  m_adjustedPos(readOffset)
 {
   std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
   auto wpath = converter.from_bytes(path);
@@ -179,7 +181,7 @@ MP4FileSource::Impl::Impl(const std::string& path) :
     throw std::runtime_error("Could not read the track length.");
   }
   auto lengthFrames = time100nsToFrames(length100ns, m_streamInfo.sampleRate());
-  m_streamInfo.numSampleFrames(lengthFrames > s_aacReadOffset ? size_t(lengthFrames - s_aacReadOffset) : 0);
+  m_streamInfo.numSampleFrames(lengthFrames > m_readOffset ? size_t(lengthFrames - m_readOffset) : 0);
 
   UINT32 bitDepth = 0;
   auto hr = nativeType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bitDepth);
@@ -217,24 +219,20 @@ MP4FileSource::Impl::Impl(const std::string& path) :
     throw std::runtime_error("Could not load uncompressed pcm decoder.");
   }
 
-  if (not setPosition(*m_reader, framesTo100ns(s_aacReadOffset, m_streamInfo.sampleRate())))
+  if (not setPosition(*m_reader, framesTo100ns(m_readOffset, m_streamInfo.sampleRate())))
     throw std::runtime_error("Could not reposition in media buffer.");
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-MP4FileSource::Impl::~Impl()
-{
-
-}
-
+MfFileSource::~MfFileSource() {}
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way)
+std::streampos MfFileSource::seek(offset_type offset, BOOST_IOS::seekdir way)
 {
-  auto sizeRatio      = m_streamInfo.bytesPerSampleFrame();
-  offset_t nominalPos = offset / sizeRatio, endPos = m_streamInfo.numSampleFrames() - 1;
+  auto frameSize         = m_streamInfo.bytesPerSampleFrame();
+  offset_type nominalPos = offset / frameSize, endPos = m_streamInfo.numSampleFrames() - 1;
 
   switch (way)
   {
@@ -248,7 +246,7 @@ std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way
   // The allowed range for the nominal offset  is [0, lengthInFrames[
   // The allowed range for the adjusted offset is [aacReadOffset, lengthInFrames + aacReadOffset[
 
-  auto adjustedPos = nominalPos + s_aacReadOffset;
+  auto adjustedPos = nominalPos + m_readOffset;
 
   if (m_nominalPos != nominalPos && seekInternal(adjustedPos))
   {
@@ -256,22 +254,20 @@ std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way
     m_adjustedPos = adjustedPos;
   }
 
-  return boost::iostreams::stream_offset_to_streamoff(m_nominalPos * sizeRatio);
+  return boost::iostreams::stream_offset_to_streamoff(m_nominalPos * frameSize);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize dstSize)
+std::streamsize MfFileSource::read(char* dst, std::streamsize size)
 {
-  auto sizeRatio = m_streamInfo.bytesPerSampleFrame();
-  auto endPos    = boost::algorithm::clamp<offset_t>(
-    m_nominalPos + dstSize / sizeRatio, 0, m_streamInfo.numSampleFrames() - 1);
+  auto frameSize = m_streamInfo.bytesPerSampleFrame();
+  auto endPos    = boost::algorithm::clamp<offset_type>(
+    m_nominalPos + size / frameSize, 0, m_streamInfo.numSampleFrames() - 1);
   auto numFrames = endPos - m_nominalPos;
 
   if (numFrames > 0)
   {
-    using namespace boost::icl;
-
     FrameRange toFill(m_adjustedPos, m_adjustedPos + numFrames);
     auto remainingFirstPass = readFromBuffer(toFill, dst);
 
@@ -284,27 +280,27 @@ std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize dstSize)
 
     for (const auto& range : remainingSecondPass)
     {
-      auto offset = (range.lower() - toFill.lower()) * sizeRatio;
-      std::fill_n(dst + offset, size(range) * sizeRatio, char(0));
+      auto offset = (range.lower() - toFill.lower()) * frameSize;
+      std::fill_n(dst + offset, boost::icl::size(range) * frameSize, char(0));
     }
   }
 
   m_nominalPos  += numFrames;
   m_adjustedPos += numFrames;
-  return numFrames * sizeRatio;
+  return numFrames * frameSize;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool MP4FileSource::Impl::seekInternal(offset_t adjustedPos)
+bool MfFileSource::seekInternal(offset_type adjustedPos)
 {
   // WMF applies a fade-in to the audio data fetched after a seek, which produces crackling. To avoid this, when
   // doing a seek we jump one block back of the target, then discard it in the following fetch.
 
-  static const size_t minValue = s_defaultBlockSize + s_aacReadOffset;
+  static const auto minValue = s_defaultBlockSize + m_readOffset;
   bool removeFadein = adjustedPos >= minValue;
 
-  adjustedPos = removeFadein ? adjustedPos - s_defaultBlockSize : s_aacReadOffset;
+  adjustedPos = removeFadein ? adjustedPos - s_defaultBlockSize : m_readOffset;
   if (not setPosition(*m_reader, framesTo100ns(adjustedPos, m_streamInfo.sampleRate()))) return false;
 
   m_fadein = removeFadein;
@@ -313,7 +309,7 @@ bool MP4FileSource::Impl::seekInternal(offset_t adjustedPos)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto MP4FileSource::Impl::readFromBuffer(const FrameRange& range, char* dst) -> FrameRangeSet
+auto MfFileSource::readFromBuffer(const FrameRange& range, char* dst) -> FrameRangeSet
 {
   FrameRangeSet remaining; remaining += range;
 
@@ -340,7 +336,7 @@ auto MP4FileSource::Impl::readFromBuffer(const FrameRange& range, char* dst) -> 
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto MP4FileSource::Impl::readFromFile(const FrameRange& range, char* dst) -> FrameRangeSet
+auto MfFileSource::readFromFile(const FrameRange& range, char* dst) -> FrameRangeSet
 {
   FrameRangeSet remaining; remaining += range;
 
@@ -359,7 +355,7 @@ auto MP4FileSource::Impl::readFromFile(const FrameRange& range, char* dst) -> Fr
     block = consumeBlock();
     if (not block || not updateBuffer(std::move(block))) return remaining;
 
-    auto offset = remaining.begin()->lower() * m_streamInfo.bytesPerSampleFrame();
+    auto offset = (remaining.begin()->lower() - range.lower()) * m_streamInfo.bytesPerSampleFrame();
     remaining   = readFromBuffer(*remaining.begin(), dst + offset);
   }
 
@@ -368,7 +364,7 @@ auto MP4FileSource::Impl::readFromFile(const FrameRange& range, char* dst) -> Fr
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto MP4FileSource::Impl::searchAndRetrieveBlock(offset_t target) -> std::unique_ptr<MfBlock>
+auto MfFileSource::searchAndRetrieveBlock(offset_type target) -> std::unique_ptr<MfBlock>
 {
   // We start by discarding the first data block if it contains a fade-in.
 
@@ -388,7 +384,7 @@ auto MP4FileSource::Impl::searchAndRetrieveBlock(offset_t target) -> std::unique
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto MP4FileSource::Impl::searchForwardAndRetrieveBlock(offset_t target) -> std::unique_ptr<MfBlock>
+auto MfFileSource::searchForwardAndRetrieveBlock(offset_type target) -> std::unique_ptr<MfBlock>
 {
   // If the target frame is ahead of the current position in the audio stream, we keep consuming data blocks until
   // we reach it. According to the WMF documentation, we are not going to overshoot.
@@ -403,13 +399,12 @@ auto MP4FileSource::Impl::searchForwardAndRetrieveBlock(offset_t target) -> std:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto MP4FileSource::Impl::searchBackwardAndRetrieveBlock(offset_t target, offset_t backstep)
-  -> std::unique_ptr<MfBlock>
+auto MfFileSource::searchBackwardAndRetrieveBlock(offset_type target, offset_type backstep) -> std::unique_ptr<MfBlock>
 {
   // If the target frame is behind the current position in the audio stream, we seek backwards recursively with an
   // increasing step until we reach it. If we overshoot, we simply move forward by consuming the excess blocks.
 
-  auto correctedTarget = target >= s_aacReadOffset + backstep ? target - backstep : s_aacReadOffset;
+  auto correctedTarget = target >= m_readOffset + backstep ? target - backstep : m_readOffset;
   if (seekInternal(correctedTarget))
   {
     if (not discardFadeinBlock()) return nullptr;
@@ -422,7 +417,7 @@ auto MP4FileSource::Impl::searchBackwardAndRetrieveBlock(offset_t target, offset
     else if (target >= range.upper())        return searchForwardAndRetrieveBlock(target);
     else
     {
-      return correctedTarget > s_aacReadOffset
+      return correctedTarget > m_readOffset
         ? searchBackwardAndRetrieveBlock(target, backstep + 2 * s_defaultBlockSize) : nullptr;
     }
   }
@@ -448,7 +443,7 @@ bool checkErrors(const IMFSample* mfSample, DWORD flags)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-auto MP4FileSource::Impl::consumeBlock() -> std::unique_ptr<MfBlock>
+auto MfFileSource::consumeBlock() -> std::unique_ptr<MfBlock>
 {
   DWORD flags = 0; LONGLONG timestamp = 0, duration = 0;
   auto mfSample = allocateNoThrow([this, &flags, &timestamp] ( IMFSample** p )
@@ -467,7 +462,7 @@ auto MP4FileSource::Impl::consumeBlock() -> std::unique_ptr<MfBlock>
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool MP4FileSource::Impl::updateBuffer(std::unique_ptr<MfBlock> block)
+bool MfFileSource::updateBuffer(std::unique_ptr<MfBlock> block)
 {
   auto buffer = boost::make_unique<MfBuffer>(std::move(block));
   if (not buffer->isLocked()) return false;
@@ -478,7 +473,7 @@ bool MP4FileSource::Impl::updateBuffer(std::unique_ptr<MfBlock> block)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-bool MP4FileSource::Impl::discardFadeinBlock()
+bool MfFileSource::discardFadeinBlock()
 {
   // If this is the first fetch after a seek we need to discard the first frame, as WMF applies a fade-in
   // effect to the first few samples that produces crackling when played back by Traktor.
