@@ -301,7 +301,7 @@ bool MP4FileSource::Impl::seekInternal(offset_t adjustedPos)
   // WMF applies a fade-in to the audio data fetched after a seek, which produces crackling. To avoid this, when
   // doing a seek we jump one block back of the target, then discard it in the following fetch.
 
-  static const size_t minValue = s_defaultBlockSize + m_readOffset;
+  static const auto minValue = s_defaultBlockSize + m_readOffset;
   bool removeFadein = adjustedPos >= minValue;
 
   adjustedPos = removeFadein ? adjustedPos - s_defaultBlockSize : m_readOffset;
