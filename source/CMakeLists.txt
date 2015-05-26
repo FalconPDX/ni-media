@@ -33,6 +33,9 @@ add_src_group   (FILES_All media_pcm_range FILES_media_pcm_range)
 
 add_library                 ( ni-media EXCLUDE_FROM_ALL ${FILES_All} )
 target_include_directories  ( ni-media PUBLIC . )
-target_link_libraries       ( ni-media boost_header_only_interface alac)
+target_link_libraries       ( ni-media boost_iostreams alac )
+if(WIN32)
+  target_link_libraries(ni-media mfplat.lib mfreadwrite.lib mfuuid.lib Propsys.lib)
+endif()
 
 
