@@ -6,7 +6,7 @@
 //!
 //! \class WmaFileSource
 //!
-//! \brief Class to read wma audio files.
+//! \brief Class to read wma audio files. Works only on Windows.
 //!
 //! \copyright NATIVE INSTRUMENTS, Berlin, Germany, ALL RIGHTS RESERVED
 //!

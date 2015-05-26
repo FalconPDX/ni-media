@@ -4,9 +4,9 @@
 //!
 //! \date Mar/2015
 //!
-//! \file MP4FileSourceMac
+//! \file CoreAudioFileSource
 //!
-//! \brief Mac implementation to stream MP4 audio files.
+//! \brief Read audio files using the CoreAudio API.
 //!
 //! \copyright NATIVE INSTRUMENTS, Berlin, Germany, ALL RIGHTS RESERVED
 //!
