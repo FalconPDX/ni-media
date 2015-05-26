@@ -1,24 +1,30 @@
 #include "MP4FileSource.h"
 
-#include <boost/predef.h>
-#if BOOST_OS_WINDOWS
-#include "impl/MP4FileSourceWin.h"
-#elif BOOST_OS_MACOS
-#include "impl/MP4FileSourceMac.h"
-#endif
-
-
 //----------------------------------------------------------------------------------------------------------------------
+
+#if BOOST_OS_MACOS
+#include "impl/MP4FileSourceMac.h"
 
 MP4FileSource::MP4FileSource(const std::string& path) { open(path); }
-
-//----------------------------------------------------------------------------------------------------------------------
 
 void MP4FileSource::open(const std::string& path)
 {
   m_impl.reset(new Impl(path));
   audioStreamInfo(m_impl->audioStreamInfo());
 }
+#elif BOOST_OS_WINDOWS
+#include "impl/MP4FileSourceWin.h"
+
+MP4FileSource::MP4FileSource(const std::string& path, offset_type readOffset) { open(path, readOffset); }
+
+void MP4FileSource::open(const std::string& path, offset_type readOffset)
+{
+  m_impl.reset(new Impl(path, readOffset));
+  audioStreamInfo(m_impl->audioStreamInfo());
+}
+#endif
+
+//----------------------------------------------------------------------------------------------------------------------
 
 void MP4FileSource::close()
 {

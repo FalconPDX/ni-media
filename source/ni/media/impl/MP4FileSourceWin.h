@@ -40,8 +40,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-  Impl(const std::string& path);
-  ~Impl();
+  Impl(const std::string& path, offset_t readOffset);
+ ~Impl();
 
   const AudioStreamInfo& audioStreamInfo() const { return m_streamInfo; }
 
@@ -49,9 +49,7 @@ public:
   std::streamsize read(char*, std::streamsize);
 
 private:
-
   static const offset_t s_defaultBlockSize = 1024;
-  static const offset_t s_aacReadOffset    = 2112;
 
   std::unique_ptr<MfInitializer> m_initializer;
   std::unique_ptr<MfBuffer>      m_buffer;
@@ -59,8 +57,9 @@ private:
 
   AudioStreamInfo                m_streamInfo;
 
+  offset_t                       m_readOffset     = 0;
   offset_t                       m_nominalPos     = 0;
-  offset_t                       m_adjustedPos    = s_aacReadOffset;
+  offset_t                       m_adjustedPos    = 0;
 
   bool                           m_fadein         = false;
 

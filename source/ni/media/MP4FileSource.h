@@ -13,8 +13,9 @@
 //!---------------------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "AudioFilesource.h"
+#include <boost/predef.h>
 
+#include "AudioFilesource.h"
 
 class MP4FileSource : private AudioFileSource
 {
@@ -25,9 +26,18 @@ public:
   using AudioFileSource::category;
   using AudioFileSource::audioStreamInfo;
 
+#if BOOST_OS_MACOS
   MP4FileSource(const std::string& path);
-
   void open(const std::string& path);
+#elif BOOST_OS_WINDOWS
+  using offset_type = boost::iostreams::stream_offset;
+  static const offset_type defaultOffset = 0;
+  static const offset_type aacOfffset    = 2112;
+
+  MP4FileSource(const std::string& path, offset_type readOffset = defaultOffset);
+  void open(const std::string& path, offset_type readOffset);
+#endif
+
   void close();
 
   bool is_open() const;

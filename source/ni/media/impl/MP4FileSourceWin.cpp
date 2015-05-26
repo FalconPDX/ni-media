@@ -142,8 +142,10 @@ private:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-MP4FileSource::Impl::Impl(const std::string& path) :
-  m_initializer(new MfInitializer)
+MP4FileSource::Impl::Impl(const std::string& path, offset_t readOffset) :
+  m_initializer(new MfInitializer),
+  m_readOffset (readOffset),
+  m_adjustedPos(readOffset)
 {
   std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
   auto wpath = converter.from_bytes(path);
@@ -179,7 +181,7 @@ MP4FileSource::Impl::Impl(const std::string& path) :
     throw std::runtime_error("Could not read the track length.");
   }
   auto lengthFrames = time100nsToFrames(length100ns, m_streamInfo.sampleRate());
-  m_streamInfo.numSampleFrames(lengthFrames > s_aacReadOffset ? size_t(lengthFrames - s_aacReadOffset) : 0);
+  m_streamInfo.numSampleFrames(lengthFrames > m_readOffset ? size_t(lengthFrames - m_readOffset) : 0);
 
   UINT32 bitDepth = 0;
   auto hr = nativeType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bitDepth);
@@ -217,7 +219,7 @@ MP4FileSource::Impl::Impl(const std::string& path) :
     throw std::runtime_error("Could not load uncompressed pcm decoder.");
   }
 
-  if (not setPosition(*m_reader, framesTo100ns(s_aacReadOffset, m_streamInfo.sampleRate())))
+  if (not setPosition(*m_reader, framesTo100ns(m_readOffset, m_streamInfo.sampleRate())))
     throw std::runtime_error("Could not reposition in media buffer.");
 }
 
@@ -248,7 +250,7 @@ std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way
   // The allowed range for the nominal offset  is [0, lengthInFrames[
   // The allowed range for the adjusted offset is [aacReadOffset, lengthInFrames + aacReadOffset[
 
-  auto adjustedPos = nominalPos + s_aacReadOffset;
+  auto adjustedPos = nominalPos + m_readOffset;
 
   if (m_nominalPos != nominalPos && seekInternal(adjustedPos))
   {
@@ -299,10 +301,10 @@ bool MP4FileSource::Impl::seekInternal(offset_t adjustedPos)
   // WMF applies a fade-in to the audio data fetched after a seek, which produces crackling. To avoid this, when
   // doing a seek we jump one block back of the target, then discard it in the following fetch.
 
-  static const size_t minValue = s_defaultBlockSize + s_aacReadOffset;
+  static const size_t minValue = s_defaultBlockSize + m_readOffset;
   bool removeFadein = adjustedPos >= minValue;
 
-  adjustedPos = removeFadein ? adjustedPos - s_defaultBlockSize : s_aacReadOffset;
+  adjustedPos = removeFadein ? adjustedPos - s_defaultBlockSize : m_readOffset;
   if (not setPosition(*m_reader, framesTo100ns(adjustedPos, m_streamInfo.sampleRate()))) return false;
 
   m_fadein = removeFadein;
@@ -407,7 +409,7 @@ auto MP4FileSource::Impl::searchBackwardAndRetrieveBlock(offset_t target, offset
   // If the target frame is behind the current position in the audio stream, we seek backwards recursively with an
   // increasing step until we reach it. If we overshoot, we simply move forward by consuming the excess blocks.
 
-  auto correctedTarget = target >= s_aacReadOffset + backstep ? target - backstep : s_aacReadOffset;
+  auto correctedTarget = target >= m_readOffset + backstep ? target - backstep : m_readOffset;
   if (seekInternal(correctedTarget))
   {
     if (not discardFadeinBlock()) return nullptr;
@@ -420,7 +422,7 @@ auto MP4FileSource::Impl::searchBackwardAndRetrieveBlock(offset_t target, offset
     else if (target >= range.upper())        return searchForwardAndRetrieveBlock(target);
     else
     {
-      return correctedTarget > s_aacReadOffset
+      return correctedTarget > m_readOffset
         ? searchBackwardAndRetrieveBlock(target, backstep + 2 * s_defaultBlockSize) : nullptr;
     }
   }
