@@ -261,17 +261,15 @@ std::streampos MP4FileSource::Impl::seek(offset_t offset, BOOST_IOS::seekdir way
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize dstSize)
+std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize size)
 {
   auto frameSize = m_streamInfo.bytesPerSampleFrame();
   auto endPos    = boost::algorithm::clamp<offset_t>(
-    m_nominalPos + dstSize / frameSize, 0, m_streamInfo.numSampleFrames() - 1);
+    m_nominalPos + size / frameSize, 0, m_streamInfo.numSampleFrames() - 1);
   auto numFrames = endPos - m_nominalPos;
 
   if (numFrames > 0)
   {
-    using namespace boost::icl;
-
     FrameRange toFill(m_adjustedPos, m_adjustedPos + numFrames);
     auto remainingFirstPass = readFromBuffer(toFill, dst);
 
@@ -285,7 +283,7 @@ std::streamsize MP4FileSource::Impl::read(char* dst, std::streamsize dstSize)
     for (const auto& range : remainingSecondPass)
     {
       auto offset = (range.lower() - toFill.lower()) * frameSize;
-      std::fill_n(dst + offset, size(range) * frameSize, char(0));
+      std::fill_n(dst + offset, boost::icl::size(range) * frameSize, char(0));
     }
   }
 
