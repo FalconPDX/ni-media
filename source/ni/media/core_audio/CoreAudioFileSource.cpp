@@ -1,10 +1,40 @@
 #include "CoreAudioFileSource.h"
 
+#include <boost/format.hpp>
 #include <boost/algorithm/clamp.hpp>
 
 
-namespace
+namespace {
+
+//----------------------------------------------------------------------------------------------------------------------
+
+size_t calcStreamIndex(AudioFileID fileId, size_t stream)
 {
+  // Get the number of available streams within the container file.
+  UInt32 numStreams = 0;
+  UInt32 size       = sizeof(fileId);
+  if (AudioFileGetProperty(fileId, 'atct', &size, &numStreams) != noErr)
+    throw std::runtime_error("Failed to retrieve stream count.");
+
+  // The audio streams are indexed as follows:
+  //
+  // STREAM     INDEX
+  // Mixdown    0
+  // Stem 1     1
+  // Stem 2     2
+  // Stem 3     3
+  // ...
+  // Stem N     N
+
+  size_t minSize = stream + 1;
+  if (minSize > numStreams)
+  {
+    throw std::runtime_error(boost::str(boost::format(
+      "Unable to open stream %u. Only %u streams found in file.") % stream % numStreams));
+  }
+
+  return stream;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -38,7 +68,7 @@ AudioStreamInfo buildOutStreamInfo(ExtAudioFileRef& media)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-CoreAudioFileSource::CoreAudioFileSource(const std::string& path)
+CoreAudioFileSource::CoreAudioFileSource(const std::string& path, size_t stream)
 {
   auto url = CFURLCreateFromFileSystemRepresentation(
     nullptr, reinterpret_cast<const UInt8*>(path.c_str()), path.size(), false);
@@ -47,15 +77,11 @@ CoreAudioFileSource::CoreAudioFileSource(const std::string& path)
   AudioFileID fileId;
   UInt32 size = sizeof(fileId);
   if (ExtAudioFileGetProperty(m_media, kExtAudioFileProperty_AudioFile, &size, &fileId) != noErr)
-  {
     throw std::runtime_error("Could not retrieve the file id.");
-  }
 
-  size_t index = 0;
+  auto index = calcStreamIndex(fileId, stream);
   if (AudioFileSetProperty(fileId, 'uatk', sizeof(index), &index) != noErr)
-  {
     throw std::runtime_error("Could not select the audio stream.");
-  }
 
   auto outStreamInfo = buildOutStreamInfo(m_media);
 

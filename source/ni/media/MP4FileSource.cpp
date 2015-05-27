@@ -8,16 +8,16 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 
-Mp4FileSource::Mp4FileSource(const std::string& path) { open(path); }
+Mp4FileSource::Mp4FileSource(const std::string& path, size_t stream) { open(path, stream); }
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void Mp4FileSource::open(const std::string& path)
+void Mp4FileSource::open(const std::string& path, size_t stream)
 {
 #if BOOST_OS_MACOS
-  m_impl.reset(new CoreAudioFileSource(path));
+  m_impl.reset(new CoreAudioFileSource(path, stream));
 #elif BOOST_OS_WINDOWS
-  m_impl.reset(new MfFileSource(path, MfFileSource::aacOfffset));
+  m_impl.reset(new MfFileSource(path, stream, MfFileSource::aacOfffset));
 #endif
   audioStreamInfo(m_impl->audioStreamInfo());
 }
