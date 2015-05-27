@@ -11,8 +11,6 @@
 //!  ALL RIGHTS RESERVED
 //!
 //----------------------------------------------------------------------------------------------------------------------
-#pragma once
-
 #include <gtest/gtest.h>
 
 #include <ni/media/pcm/converter.h>
