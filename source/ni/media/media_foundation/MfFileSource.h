@@ -45,7 +45,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-  MfFileSource(const std::string& path, offset_type readOffset = defaultOffset);
+  MfFileSource(const std::string& path, size_t stream, offset_type readOffset = defaultOffset);
  ~MfFileSource();
 
   const AudioStreamInfo& audioStreamInfo() const { return m_streamInfo; }
@@ -61,12 +61,13 @@ private:
   MfTypePtr<IMFSourceReader>     m_reader;
 
   AudioStreamInfo                m_streamInfo;
+  size_t                         m_streamIndex = 0;
 
-  offset_type                    m_readOffset     = 0;
-  offset_type                    m_nominalPos     = 0;
-  offset_type                    m_adjustedPos    = 0;
+  offset_type                    m_readOffset  = 0;
+  offset_type                    m_nominalPos  = 0;
+  offset_type                    m_adjustedPos = 0;
 
-  bool                           m_fadein         = false;
+  bool                           m_fadein      = false;
 
   bool seekInternal(offset_type);
 

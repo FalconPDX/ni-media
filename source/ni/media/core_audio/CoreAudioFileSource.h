@@ -23,7 +23,7 @@ class CoreAudioFileSource
   using offset_type = boost::iostreams::stream_offset;
 
 public:
-  CoreAudioFileSource(const std::string& path);
+  CoreAudioFileSource(const std::string& path, size_t stream);
  ~CoreAudioFileSource();
 
   const AudioStreamInfo& audioStreamInfo() const { return m_streamInfo; }
