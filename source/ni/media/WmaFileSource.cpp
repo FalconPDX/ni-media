@@ -10,7 +10,7 @@ WmaFileSource::WmaFileSource(const std::string& path) { open(path); }
 
 void WmaFileSource::open(const std::string& path)
 {
-  m_impl.reset(new MfFileSource(path, MfFileSource::defaultOffset));
+  m_impl.reset(new MfFileSource(path, 0, MfFileSource::defaultOffset));
   audioStreamInfo(m_impl->audioStreamInfo());
 }
 

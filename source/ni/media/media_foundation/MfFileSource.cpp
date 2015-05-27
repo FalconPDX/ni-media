@@ -90,6 +90,55 @@ LONGLONG framesTo100ns(MfFileSource::offset_type frame, size_t sampleRate)
   return frame * secTo100ns / sampleRate;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+
+std::vector<size_t> retrieveAudioStreamsIndices(IMFSourceReader& reader)
+{
+  // Retrieve all the indices of the streams in the file that contain audio data and place them in a vector.
+
+  std::vector<size_t> streams;
+
+  size_t cursor     = 0;
+  bool keepScanning = true;
+  do
+  {
+    GUID attribute;
+    auto media   = allocateNoThrow([&] (IMFMediaType** ptr) { return reader.GetCurrentMediaType(cursor, ptr); });
+    keepScanning = keepScanning && media && SUCCEEDED(media->GetMajorType(&attribute));
+
+    if (keepScanning && attribute == MFMediaType_Audio) streams.push_back(cursor);
+    ++cursor;
+  } while (keepScanning);
+
+  return streams;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+size_t calcStreamIndex(IMFSourceReader& reader, size_t stream)
+{
+  // The audio streams are indexed as follows:
+  //
+  // STREAM     INDEX
+  // Mixdown    N
+  // Stem 1     N-1
+  // Stem 2     N-2
+  // Stem 3     N-3
+  // ...
+  // Stem N     0
+
+  auto indices = retrieveAudioStreamsIndices(reader);
+
+  size_t minSize = stream + 1;
+  if (indices.size() < minSize)
+  {
+    throw std::runtime_error(boost::str(boost::format(
+      "Unable to open stream %u. Only %u streams found in file.") % stream % indices.size()));
+  }
+
+  return indices[indices.size() - stream - 1];
+}
+
 } // namespace anonymous
 
 struct MfFileSource::MfInitializer
@@ -142,7 +191,7 @@ private:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-MfFileSource::MfFileSource(const std::string& path, offset_type readOffset) :
+MfFileSource::MfFileSource(const std::string& path, size_t stream, offset_type readOffset) :
   m_initializer(new MfInitializer),
   m_readOffset (readOffset),
   m_adjustedPos(readOffset)
@@ -153,8 +202,9 @@ MfFileSource::MfFileSource(const std::string& path, offset_type readOffset) :
   m_reader = allocateOrThrow([&wpath] (IMFSourceReader** p) {
     return MFCreateSourceReaderFromURL(wpath.c_str(), nullptr, p); }, "Could not open the audio file.");
 
+  m_streamIndex = calcStreamIndex(*m_reader, stream);
   if  (FAILED(m_reader->SetStreamSelection((DWORD)MF_SOURCE_READER_ALL_STREAMS, FALSE))
-    || FAILED(m_reader->SetStreamSelection(0, TRUE)))
+    || FAILED(m_reader->SetStreamSelection(m_streamIndex, TRUE)))
   {
     throw std::runtime_error("Could not select the audio stream.");
   }
@@ -162,7 +212,7 @@ MfFileSource::MfFileSource(const std::string& path, offset_type readOffset) :
   // Retrieve the native media attributes.
 
   auto nativeType = allocateOrThrow([this] (IMFMediaType** p) {
-    return m_reader->GetNativeMediaType(0, 0, p); }, "Could not get native media type.");
+    return m_reader->GetNativeMediaType(m_streamIndex, 0, p); }, "Could not get native media type.");
 
   UINT32 value = 0;
   if (FAILED(nativeType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &value)))
@@ -214,7 +264,7 @@ MfFileSource::MfFileSource(const std::string& path, offset_type readOffset) :
     || FAILED(pcmType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT,      UINT32(m_streamInfo.bytesPerSampleFrame())))
     || FAILED(pcmType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerSecond))
     || FAILED(pcmType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT,    TRUE))
-    || FAILED(m_reader->SetCurrentMediaType(0, nullptr, pcmType.get())))
+    || FAILED(m_reader->SetCurrentMediaType(m_streamIndex, nullptr, pcmType.get())))
   {
     throw std::runtime_error("Could not load uncompressed pcm decoder.");
   }
@@ -448,7 +498,7 @@ auto MfFileSource::consumeBlock() -> std::unique_ptr<MfBlock>
   DWORD flags = 0; LONGLONG timestamp = 0, duration = 0;
   auto mfSample = allocateNoThrow([this, &flags, &timestamp] ( IMFSample** p )
   {
-    return m_reader->ReadSample(0, 0, nullptr, &flags, &timestamp, p);
+    return m_reader->ReadSample(m_streamIndex, 0, nullptr, &flags, &timestamp, p);
   });
 
   if (not checkErrors(mfSample.get(), flags) || FAILED(mfSample->GetSampleDuration(&duration))) return nullptr;
