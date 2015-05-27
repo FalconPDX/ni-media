@@ -30,7 +30,7 @@ size_t calcStreamIndex(AudioFileID fileId, size_t stream)
   if (minSize > numStreams)
   {
     throw std::runtime_error(boost::str(boost::format(
-      "Unable to open stream %u. Only %u streams found in file.") % stream % numStreams));
+      "Could not open stream %u. Only %u streams found in file.") % stream % numStreams));
   }
 
   return stream;

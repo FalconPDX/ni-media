@@ -133,7 +133,7 @@ size_t calcStreamIndex(IMFSourceReader& reader, size_t stream)
   if (indices.size() < minSize)
   {
     throw std::runtime_error(boost::str(boost::format(
-      "Unable to open stream %u. Only %u streams found in file.") % stream % indices.size()));
+      "Could not open stream %u. Only %u streams found in file.") % stream % indices.size()));
   }
 
   return indices[indices.size() - stream - 1];
