@@ -79,7 +79,7 @@ CoreAudioFileSource::CoreAudioFileSource(const std::string& path, size_t stream)
   if (ExtAudioFileGetProperty(m_media, kExtAudioFileProperty_AudioFile, &size, &fileId) != noErr)
     throw std::runtime_error("Could not retrieve the file id.");
 
-  auto index = calcStreamIndex(fileId, stream);
+  auto index = stream == 0 ? 0 : calcStreamIndex(fileId, stream);
   if (AudioFileSetProperty(fileId, 'uatk', sizeof(index), &index) != noErr)
     throw std::runtime_error("Could not select the audio stream.");
 
