@@ -30,9 +30,9 @@ public:
   using AudioFileSource::category;
   using AudioFileSource::audioStreamInfo;
 
-  Mp4FileSource(const std::string& path, size_t stream);
+  Mp4FileSource(const std::string& path, size_t stream = 0);
 
-  void open(const std::string& path, size_t stream);
+  void open(const std::string& path, size_t stream = 0);
   void close();
 
   bool is_open() const;

@@ -202,7 +202,7 @@ MfFileSource::MfFileSource(const std::string& path, size_t stream, offset_type r
   m_reader = allocateOrThrow([&wpath] (IMFSourceReader** p) {
     return MFCreateSourceReaderFromURL(wpath.c_str(), nullptr, p); }, "Could not open the audio file.");
 
-  m_streamIndex = calcStreamIndex(*m_reader, stream);
+  m_streamIndex = stream == 0 ? 0 : calcStreamIndex(*m_reader, stream);
   if  (FAILED(m_reader->SetStreamSelection((DWORD)MF_SOURCE_READER_ALL_STREAMS, FALSE))
     || FAILED(m_reader->SetStreamSelection(m_streamIndex, TRUE)))
   {
