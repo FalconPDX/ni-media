@@ -445,14 +445,14 @@ namespace pcm {
     class iterator_t,
     class... Tags >
    const std::array< reader_signature<value_t,iterator_t>, sizeof...(Tags) >
-   dispatcher< value_t, iterator_t, ::pcm::detail::types<Tags...> >::readers = { &read_value<Tags,iterator_t,value_t>... };
+   dispatcher< value_t, iterator_t, ::pcm::detail::types<Tags...> >::readers = {{ &read_value<Tags,iterator_t,value_t>... }};
 
    template<
     class value_t,
     class iterator_t,
     class... Tags >
    const std::array< writer_signature<value_t,iterator_t>, sizeof...(Tags) >
-   dispatcher< value_t, iterator_t, ::pcm::detail::types<Tags...> >::writers = { &write_value<Tags,iterator_t,value_t>... };
+   dispatcher< value_t, iterator_t, ::pcm::detail::types<Tags...> >::writers = {{ &write_value<Tags,iterator_t,value_t>... }};
 
 
   template<
