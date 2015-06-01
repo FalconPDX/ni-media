@@ -1,4 +1,4 @@
-find_package(niboost)
+find_package(NIBoost)
 
 
 add_subdirectory(ni/media/alac)
