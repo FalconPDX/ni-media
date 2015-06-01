@@ -15,7 +15,7 @@
 
 #include <AudioToolbox/ExtendedAudioFile.h>
 
-#include <ni/media/MP4FileSource.h>
+#include <ni/media/Mp4FileSource.h>
 
 
 class CoreAudioFileSource

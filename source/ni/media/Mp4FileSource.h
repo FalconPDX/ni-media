@@ -15,7 +15,7 @@
 
 #include <boost/predef.h>
 
-#include <ni/media/AudioFilesource.h>
+#include <ni/media/AudioFileSource.h>
 
 #if BOOST_OS_MACOS
   class CoreAudioFileSource;
