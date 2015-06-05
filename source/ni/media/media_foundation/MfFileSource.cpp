@@ -92,13 +92,13 @@ LONGLONG framesTo100ns(MfFileSource::offset_type frame, size_t sampleRate)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-std::vector<size_t> retrieveAudioStreamsIndices(IMFSourceReader& reader)
+auto retrieveAudioStreamsIndices(IMFSourceReader& reader) -> std::vector<size_t>
 {
   // Retrieve all the indices of the streams in the file that contain audio data and place them in a vector.
 
   std::vector<size_t> streams;
 
-  size_t cursor     = 0;
+  DWORD cursor      = 0;
   bool keepScanning = true;
   do
   {
@@ -202,9 +202,9 @@ MfFileSource::MfFileSource(const std::string& path, size_t stream, offset_type r
   m_reader = allocateOrThrow([&wpath] (IMFSourceReader** p) {
     return MFCreateSourceReaderFromURL(wpath.c_str(), nullptr, p); }, "Could not open the audio file.");
 
-  m_streamIndex = stream == 0 ? 0 : calcStreamIndex(*m_reader, stream);
-  if  (FAILED(m_reader->SetStreamSelection((DWORD)MF_SOURCE_READER_ALL_STREAMS, FALSE))
-    || FAILED(m_reader->SetStreamSelection(m_streamIndex, TRUE)))
+  m_streamIndex = calcStreamIndex(*m_reader, stream);
+  if  (FAILED(m_reader->SetStreamSelection(DWORD(MF_SOURCE_READER_ALL_STREAMS), FALSE))
+    || FAILED(m_reader->SetStreamSelection(DWORD(m_streamIndex), TRUE)))
   {
     throw std::runtime_error("Could not select the audio stream.");
   }
@@ -212,7 +212,7 @@ MfFileSource::MfFileSource(const std::string& path, size_t stream, offset_type r
   // Retrieve the native media attributes.
 
   auto nativeType = allocateOrThrow([this] (IMFMediaType** p) {
-    return m_reader->GetNativeMediaType(m_streamIndex, 0, p); }, "Could not get native media type.");
+    return m_reader->GetNativeMediaType(DWORD(m_streamIndex), 0, p); }, "Could not get native media type.");
 
   UINT32 value = 0;
   if (FAILED(nativeType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &value)))
@@ -257,14 +257,14 @@ MfFileSource::MfFileSource(const std::string& path, size_t stream, offset_type r
   auto pcmType = allocateOrThrow([] (IMFMediaType** p) { return MFCreateMediaType(p); },
     "Could not create target media type.");
 
-  UINT32 bytesPerSecond = UINT32(m_streamInfo.bytesPerSampleFrame() * m_streamInfo.sampleRate());
+  auto bytesPerSecond = UINT32(m_streamInfo.bytesPerSampleFrame() * m_streamInfo.sampleRate());
 
   if  (FAILED(pcmType->SetGUID(MF_MT_MAJOR_TYPE,                   MFMediaType_Audio))
     || FAILED(pcmType->SetGUID(MF_MT_SUBTYPE,                      MFAudioFormat_PCM))
     || FAILED(pcmType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT,      UINT32(m_streamInfo.bytesPerSampleFrame())))
     || FAILED(pcmType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerSecond))
     || FAILED(pcmType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT,    TRUE))
-    || FAILED(m_reader->SetCurrentMediaType(m_streamIndex, nullptr, pcmType.get())))
+    || FAILED(m_reader->SetCurrentMediaType(DWORD(m_streamIndex),  nullptr, pcmType.get())))
   {
     throw std::runtime_error("Could not load uncompressed pcm decoder.");
   }
@@ -498,7 +498,7 @@ auto MfFileSource::consumeBlock() -> std::unique_ptr<MfBlock>
   DWORD flags = 0; LONGLONG timestamp = 0, duration = 0;
   auto mfSample = allocateNoThrow([this, &flags, &timestamp] ( IMFSample** p )
   {
-    return m_reader->ReadSample(m_streamIndex, 0, nullptr, &flags, &timestamp, p);
+    return m_reader->ReadSample(DWORD(m_streamIndex), 0, nullptr, &flags, &timestamp, p);
   });
 
   if (not checkErrors(mfSample.get(), flags) || FAILED(mfSample->GetSampleDuration(&duration))) return nullptr;
