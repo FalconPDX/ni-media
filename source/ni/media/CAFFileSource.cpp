@@ -408,7 +408,8 @@ size_t CAFFileSource::decodeBlock( )
     m_inputDataPos += numBytesToRead;
 
     uint32_t numFrames = 0;
-    if ( (numBytesToRead > 0) && ((size_t)numBytesToRead == AudioFileSource::read( (char*)m_readBuffer.data(), numBytesToRead )) )
+    if ( numBytesToRead > 0
+      && numBytesToRead == AudioFileSource::read( (char*)m_readBuffer.data(), numBytesToRead ) )
     {
       BitBuffer readBuffer;
       BitBufferInit(&readBuffer, m_readBuffer.data(), uint32_t(m_readBuffer.size()));
