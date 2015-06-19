@@ -30,9 +30,7 @@ add_library(alac EXCLUDE_FROM_ALL ${FILES_All})
 target_include_directories(alac PUBLIC codec)
 
 if(WIN32)
-  set_target_properties(alac PROPERTIES COMPILE_DEFINITIONS TARGET_OS_WIN32=1)
-else()
-
+  target_compile_definitions( alac PRIVATE TARGET_OS_WIN32=1 )
 endif()
 
 

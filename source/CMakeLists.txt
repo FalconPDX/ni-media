@@ -28,6 +28,8 @@ add_src_group   (FILES_All media_pcm FILES_media_pcm)
 
 add_src_file    (FILES_media_pcm_range "ni/media/pcm/range/converted.h")
 add_src_group   (FILES_All media_pcm_range FILES_media_pcm_range)
+
+
 #--------------------------------------------------------------------
 # linking
 #--------------------------------------------------------------------
@@ -38,5 +40,3 @@ target_link_libraries       ( ni-media boost_iostreams alac )
 if(WIN32)
   target_link_libraries(ni-media mfplat.lib mfreadwrite.lib mfuuid.lib Propsys.lib)
 endif()
-
-
