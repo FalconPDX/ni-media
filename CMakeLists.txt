@@ -14,19 +14,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${nilibs_path}/support/cmake)
 include( ni-compiler-base )
 
 enable_testing()
-option( NIMEDIA_TESTS "Build ni-media Tests" ON )
 
-
-# beatiful colors when using clang
-if(APPLE)
-  set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fcolor-diagnostics" )
+if( CMAKE_PROJECT_NAME STREQUAL "ni-media" )
+  option( NIMEDIA_TESTS "Build ni-media Tests" ON )
+else()
+  option( NIMEDIA_TESTS "Build ni-media Tests" OFF )
 endif()
 
 
 #--------------------------------------------------------------------
 # add targets
 #--------------------------------------------------------------------
-set(NI_UNITY_BUILDS false)
+
 add_subdirectory( source )
 
 if( NIMEDIA_TESTS )
